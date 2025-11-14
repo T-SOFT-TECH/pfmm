@@ -1,0 +1,168 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/forms';
+@plugin '@tailwindcss/typography';
+
+/* Custom Theme Configuration for Preaching Fingers Music & Multimedia */
+@theme {
+  /* Primary Colors - Magenta/Pink (from logo) */
+  --color-primary-50: oklch(0.97 0.02 330);
+  --color-primary-100: oklch(0.94 0.04 330);
+  --color-primary-200: oklch(0.87 0.08 330);
+  --color-primary-300: oklch(0.78 0.13 330);
+  --color-primary-400: oklch(0.68 0.18 330);
+  --color-primary-500: oklch(0.58 0.22 330);
+  --color-primary-600: oklch(0.50 0.24 330);
+  --color-primary-700: oklch(0.42 0.20 330);
+  --color-primary-800: oklch(0.35 0.16 330);
+  --color-primary-900: oklch(0.28 0.12 330);
+  --color-primary-950: oklch(0.18 0.08 330);
+
+  /* Accent Colors - Orange/Amber (from logo) */
+  --color-accent-50: oklch(0.97 0.02 60);
+  --color-accent-100: oklch(0.94 0.05 60);
+  --color-accent-200: oklch(0.88 0.10 60);
+  --color-accent-300: oklch(0.80 0.14 60);
+  --color-accent-400: oklch(0.72 0.18 60);
+  --color-accent-500: oklch(0.68 0.20 60);
+  --color-accent-600: oklch(0.60 0.18 55);
+  --color-accent-700: oklch(0.50 0.15 50);
+  --color-accent-800: oklch(0.42 0.12 45);
+  --color-accent-900: oklch(0.35 0.10 40);
+  --color-accent-950: oklch(0.25 0.06 35);
+
+  /* Secondary Colors - Teal/Cyan (from logo music notes) */
+  --color-secondary-50: oklch(0.97 0.02 200);
+  --color-secondary-100: oklch(0.93 0.05 200);
+  --color-secondary-200: oklch(0.86 0.08 200);
+  --color-secondary-300: oklch(0.77 0.11 200);
+  --color-secondary-400: oklch(0.66 0.14 200);
+  --color-secondary-500: oklch(0.58 0.16 200);
+  --color-secondary-600: oklch(0.50 0.15 200);
+  --color-secondary-700: oklch(0.42 0.12 200);
+  --color-secondary-800: oklch(0.35 0.10 200);
+  --color-secondary-900: oklch(0.28 0.08 200);
+  --color-secondary-950: oklch(0.20 0.05 200);
+
+  /* Dark Background Colors */
+  --color-dark-50: oklch(0.95 0.01 280);
+  --color-dark-100: oklch(0.90 0.01 280);
+  --color-dark-200: oklch(0.80 0.01 280);
+  --color-dark-300: oklch(0.65 0.02 280);
+  --color-dark-400: oklch(0.50 0.02 280);
+  --color-dark-500: oklch(0.35 0.02 280);
+  --color-dark-600: oklch(0.25 0.02 280);
+  --color-dark-700: oklch(0.18 0.02 280);
+  --color-dark-800: oklch(0.12 0.02 280);
+  --color-dark-900: oklch(0.08 0.01 280);
+  --color-dark-950: oklch(0.05 0.01 280);
+}
+
+/* Global Styles */
+body {
+  @apply bg-dark-900 text-dark-50;
+}
+
+/* Custom scrollbar for dark theme */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-dark-800;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-primary-600 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-primary-500;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* View Transitions */
+@supports (view-transition-name: none) {
+  /* Prevent header and footer from transitioning */
+  header {
+    view-transition-name: header;
+  }
+
+  footer {
+    view-transition-name: footer;
+  }
+
+  /* Keep header and footer static during transitions */
+  ::view-transition-old(header),
+  ::view-transition-new(header),
+  ::view-transition-old(footer),
+  ::view-transition-new(footer) {
+    animation: none;
+    mix-blend-mode: normal;
+  }
+
+  /* Main content transition animations */
+  ::view-transition-old(main-content) {
+    animation: fade-out 0.3s ease-out;
+  }
+
+  ::view-transition-new(main-content) {
+    animation: fade-in 0.3s ease-in;
+  }
+
+  @keyframes fade-out {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+/* Tab transition animations */
+@keyframes tab-fade-in {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes tab-fade-out {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+}
+
+.tab-content-enter {
+  animation: tab-fade-in 0.3s ease-out;
+}
+
+.tab-content-exit {
+  animation: tab-fade-out 0.3s ease-out;
+}
