@@ -3,7 +3,7 @@
 	import Animate from '$lib/components/Animate.svelte';
 
 	const stats = [
-		{ value: '10+', label: 'Years Experience' },
+		{ value: '15+', label: 'Years Experience' },
 		{ value: '500+', label: 'Projects Completed' },
 		{ value: '1000+', label: 'People Trained' },
 		{ value: '3', label: 'Foundations Led' }
