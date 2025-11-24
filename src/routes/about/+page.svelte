@@ -2,6 +2,8 @@
 	import { onMount } from 'svelte';
 	import { pb } from '$lib/pocketbase';
 	import Animate from '$lib/components/Animate.svelte';
+	import SEO from '$lib/components/SEO.svelte';
+	import StructuredData from '$lib/components/StructuredData.svelte';
 
 	let experiences = $state<any[]>([]);
 	let skills = $state<any[]>([]);
@@ -58,9 +60,15 @@
 	});
 </script>
 
-<svelte:head>
-	<title>About Me - Aliu Ifeoluwa Philemon</title>
-</svelte:head>
+<SEO
+	title="About Me - Aliu Ifeoluwa Philemon"
+	description="Learn about Aliu Ifeoluwa Philemon's journey in music ministry, media production, and community empowerment. Over 10 years of experience in sound engineering, video production, and creative training programs."
+	image="/logo.png"
+	url="https://pfmm.com/about"
+	type="profile"
+	keywords={['Aliu Ifeoluwa Philemon', 'music producer', 'sound engineer', 'media professional', 'creative mentor', 'ministry leader']}
+/>
+<StructuredData type="Person" />
 
 <!-- Hero Section -->
 <section class="relative pt-32 pb-20 overflow-hidden">

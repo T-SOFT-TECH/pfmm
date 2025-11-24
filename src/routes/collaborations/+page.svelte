@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { pb } from '$lib/pocketbase';
 	import Animate from '$lib/components/Animate.svelte';
+	import SEO from '$lib/components/SEO.svelte';
 
 	let collaborations = $state<any[]>([]);
 	let loading = $state(true);
@@ -36,9 +37,13 @@
 	}
 </script>
 
-<svelte:head>
-	<title>Media & Collaborations - Aliu Ifeoluwa Philemon</title>
-</svelte:head>
+<SEO
+	title="Media & Collaborations"
+	description="Discover partnerships, media features, and collaborative projects. Working with churches, ministries, organizations, and creative professionals to deliver impactful music and media solutions."
+	image="/logo.png"
+	url="https://pfmm.com/collaborations"
+	keywords={['collaborations', 'partnerships', 'media features', 'church partnerships', 'creative collaborations', 'ministry partnerships']}
+/>
 
 <!-- Hero Section -->
 <section class="relative pt-32 pb-20 overflow-hidden">

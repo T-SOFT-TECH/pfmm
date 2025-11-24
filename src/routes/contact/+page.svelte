@@ -1,6 +1,9 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { pb } from '$lib/pocketbase';
 	import Animate from '$lib/components/Animate.svelte';
+	import SEO from '$lib/components/SEO.svelte';
+	import { siteSettings, loadSiteSettings, type SiteSettings } from '$lib/stores/siteSettings';
 
 	let formData = $state({
 		name: '',
@@ -11,6 +14,12 @@
 
 	let formStatus = $state<'idle' | 'submitting' | 'success' | 'error'>('idle');
 	let statusMessage = $state('');
+	let settings = $state<SiteSettings>($siteSettings);
+
+	onMount(async () => {
+		await loadSiteSettings();
+		settings = $siteSettings;
+	});
 
 	async function handleSubmit(e: Event) {
 		e.preventDefault();
@@ -43,26 +52,35 @@
 		}
 	}
 
-	const contactInfo = [
-		{
-			icon: 'email',
-			title: 'Email',
-			value: 'info@preachingfingers.com',
-			link: 'mailto:info@preachingfingers.com'
-		},
-		{
-			icon: 'phone',
-			title: 'Phone',
-			value: '+234 XXX XXX XXXX',
-			link: 'tel:+234XXXXXXXXXX'
-		},
-		{
-			icon: 'location',
-			title: 'Location',
-			value: 'Lagos, Nigeria',
-			link: null
+	// Dynamic contact info from database
+	const contactInfo = $derived(() => {
+		const info = [];
+		if (settings.contact_email) {
+			info.push({
+				icon: 'email',
+				title: 'Email',
+				value: settings.contact_email,
+				link: `mailto:${settings.contact_email}`
+			});
 		}
-	];
+		if (settings.contact_phone) {
+			info.push({
+				icon: 'phone',
+				title: 'Phone',
+				value: settings.contact_phone,
+				link: `tel:${settings.contact_phone}`
+			});
+		}
+		if (settings.address) {
+			info.push({
+				icon: 'location',
+				title: 'Location',
+				value: settings.address,
+				link: null
+			});
+		}
+		return info;
+	});
 
 	const reasons = [
 		{ title: 'Creative Collaboration', description: 'Looking for professional audio, video, or media production services' },
@@ -72,9 +90,13 @@
 	];
 </script>
 
-<svelte:head>
-	<title>Contact - Aliu Ifeoluwa Philemon</title>
-</svelte:head>
+<SEO
+	title="Contact - Get in Touch"
+	description="Get in touch for music ministry services, media production inquiries, training programs, or technical installations. Contact Aliu Ifeoluwa Philemon for professional creative services and collaborations."
+	image="/logo.png"
+	url="https://pfmm.com/contact"
+	keywords={['contact', 'get in touch', 'inquiries', 'hire music producer', 'booking', 'consultation', 'media services contact']}
+/>
 
 <!-- Hero Section -->
 <section class="relative pt-32 pb-20 overflow-hidden">
@@ -148,7 +170,7 @@
 					</p>
 				</div>
 
-				{#each contactInfo as info}
+				{#each contactInfo() as info}
 					<div class="flex items-start space-x-4">
 						<div class="w-12 h-12 bg-gradient-to-br from-primary-600 to-accent-600 rounded-lg flex items-center justify-center flex-shrink-0">
 							{#if info.icon === 'email'}

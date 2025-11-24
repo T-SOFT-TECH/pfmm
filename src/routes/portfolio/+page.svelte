@@ -4,6 +4,7 @@
 	import { fade, fly } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
 	import Animate from '$lib/components/Animate.svelte';
+	import SEO from '$lib/components/SEO.svelte';
 
 	let projects = $state<any[]>([]);
 	let loading = $state(true);
@@ -100,9 +101,13 @@
 	}
 </script>
 
-<svelte:head>
-	<title>Portfolio - Aliu Ifeoluwa Philemon</title>
-</svelte:head>
+<SEO
+	title="Portfolio - Creative Projects"
+	description="Explore a diverse portfolio of music production, video projects, training programs, and technical installations. Professional work showcasing music ministry, media production, and community development initiatives."
+	image="/logo.png"
+	url="https://pfmm.com/portfolio"
+	keywords={['portfolio', 'music projects', 'video production', 'media work', 'creative projects', 'sound engineering projects', 'church installations']}
+/>
 
 <!-- Hero Section -->
 <section class="relative pt-32 pb-20 overflow-hidden">

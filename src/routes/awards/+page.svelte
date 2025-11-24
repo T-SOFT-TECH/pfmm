@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { pb } from '$lib/pocketbase';
 	import Animate from '$lib/components/Animate.svelte';
+	import SEO from '$lib/components/SEO.svelte';
 
 	let awards = $state<any[]>([]);
 	let loading = $state(true);
@@ -25,9 +26,13 @@
 	}
 </script>
 
-<svelte:head>
-	<title>Awards & Recognitions - Aliu Ifeoluwa Philemon</title>
-</svelte:head>
+<SEO
+	title="Awards & Recognitions"
+	description="Celebrating achievements and recognitions in music ministry, media production, and community empowerment. Awards and honors received for excellence in creative work and service."
+	image="/logo.png"
+	url="https://pfmm.com/awards"
+	keywords={['awards', 'recognitions', 'achievements', 'honors', 'music awards', 'media production awards', 'community service awards']}
+/>
 
 <!-- Hero Section -->
 <section class="relative pt-32 pb-20 overflow-hidden">

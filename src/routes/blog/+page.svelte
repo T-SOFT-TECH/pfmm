@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { pb } from '$lib/pocketbase';
 	import Animate from '$lib/components/Animate.svelte';
+	import SEO from '$lib/components/SEO.svelte';
 
 	let posts = $state<any[]>([]);
 	let loading = $state(true);
@@ -40,9 +41,13 @@
 	}
 </script>
 
-<svelte:head>
-	<title>Blog & Insights - Aliu Ifeoluwa Philemon</title>
-</svelte:head>
+<SEO
+	title="Blog & Insights"
+	description="Read articles, stories, and insights about music ministry, media production, creative empowerment, and faith-driven work. Expert perspectives on sound engineering, video production, and community development."
+	image="/logo.png"
+	url="https://pfmm.com/blog"
+	keywords={['music ministry blog', 'media production insights', 'sound engineering tips', 'creative empowerment', 'faith and creativity', 'ministry leadership']}
+/>
 
 <!-- Hero Section -->
 <section class="relative pt-32 pb-20 overflow-hidden">

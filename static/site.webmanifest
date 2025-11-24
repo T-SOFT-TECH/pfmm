@@ -1,0 +1,23 @@
+{
+	"name": "Preaching Fingers Music and Multi-Media",
+	"short_name": "PFMM",
+	"description": "Professional music ministry, media production, and creative empowerment services",
+	"start_url": "/",
+	"display": "standalone",
+	"background_color": "#0f172a",
+	"theme_color": "#8B5CF6",
+	"orientation": "portrait-primary",
+	"icons": [
+		{
+			"src": "/logo.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any maskable"
+		},
+		{
+			"src": "/apple-touch-icon.png",
+			"sizes": "180x180",
+			"type": "image/png"
+		}
+	]
+}

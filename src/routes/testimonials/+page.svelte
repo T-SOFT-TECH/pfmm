@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { pb } from '$lib/pocketbase';
 	import Animate from '$lib/components/Animate.svelte';
+	import SEO from '$lib/components/SEO.svelte';
 
 	let testimonials = $state<any[]>([]);
 	let loading = $state(true);
@@ -26,9 +27,13 @@
 	}
 </script>
 
-<svelte:head>
-	<title>Testimonials - Aliu Ifeoluwa Philemon</title>
-</svelte:head>
+<SEO
+	title="Testimonials - Client Reviews"
+	description="Read testimonials from clients and collaborators who have experienced professional music ministry services, media production, training programs, and technical installations. Real feedback from churches, events, and individuals."
+	image="/logo.png"
+	url="https://pfmm.com/testimonials"
+	keywords={['client testimonials', 'reviews', 'feedback', 'client satisfaction', 'music ministry reviews', 'media production testimonials']}
+/>
 
 <!-- Hero Section -->
 <section class="relative pt-32 pb-20 overflow-hidden">

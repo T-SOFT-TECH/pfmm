@@ -3,6 +3,8 @@
 	import { pb } from '$lib/pocketbase';
 	import HeroSlider from '$lib/components/HeroSlider.svelte';
 	import Animate from '$lib/components/Animate.svelte';
+	import SEO from '$lib/components/SEO.svelte';
+	import StructuredData from '$lib/components/StructuredData.svelte';
 
 	let stats = $state<any[]>([]);
 	let services = $state<any[]>([]);
@@ -52,9 +54,14 @@
 	}
 </script>
 
-<svelte:head>
-	<title>Aliu Ifeoluwa Philemon - Creative Media Producer & Empowerment Advocate</title>
-</svelte:head>
+<SEO
+	title="Aliu Ifeoluwa Philemon - Creative Media Producer & Empowerment Advocate"
+	description="Professional music ministry, media production, and creative empowerment services. Specializing in sound engineering, video production, training programs, and technical installations for churches and events."
+	image="/logo.png"
+	url="https://pfmm.com"
+	keywords={['music ministry', 'sound engineering', 'video production', 'media training', 'church installations', 'creative empowerment', 'Aliu Ifeoluwa Philemon']}
+/>
+<StructuredData type="Organization" />
 
 <!-- Hero Slider -->
 <HeroSlider />

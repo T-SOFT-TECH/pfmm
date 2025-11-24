@@ -1,3 +1,10 @@
-# allow crawling everything by default
+# Allow all crawlers
 User-agent: *
-Disallow:
+Allow: /
+
+# Disallow admin pages
+Disallow: /admin/
+Disallow: /login/
+
+# Sitemap
+Sitemap: https://pfmm.com/sitemap.xml

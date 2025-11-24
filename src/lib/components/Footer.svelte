@@ -1,5 +1,14 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import { siteSettings, loadSiteSettings, type SiteSettings } from '$lib/stores/siteSettings';
+
 	const currentYear = new Date().getFullYear();
+	let settings = $state<SiteSettings>($siteSettings);
+
+	onMount(async () => {
+		await loadSiteSettings();
+		settings = $siteSettings;
+	});
 
 	const footerLinks = {
 		quick: [
@@ -13,15 +22,34 @@
 			{ href: '/collaborations', label: 'Collaborations' },
 			{ href: '/blog', label: 'Blog & Insights' },
 			{ href: '/testimonials', label: 'Testimonials' }
-		],
-		social: [
-			{ href: '#', label: 'Facebook', icon: 'facebook' },
-			{ href: '#', label: 'Twitter', icon: 'twitter' },
-			{ href: '#', label: 'Instagram', icon: 'instagram' },
-			{ href: '#', label: 'LinkedIn', icon: 'linkedin' },
-			{ href: '#', label: 'YouTube', icon: 'youtube' }
 		]
 	};
+
+	// Dynamic social media links from database
+	const socialLinks = $derived(() => {
+		const links = [];
+		if (settings.facebook_url) {
+			links.push({ href: settings.facebook_url, label: 'Facebook', icon: 'facebook' });
+		}
+		if (settings.twitter_handle) {
+			const twitterUrl = settings.twitter_handle.startsWith('@')
+				? `https://twitter.com/${settings.twitter_handle.slice(1)}`
+				: settings.twitter_handle.startsWith('http')
+				? settings.twitter_handle
+				: `https://twitter.com/${settings.twitter_handle}`;
+			links.push({ href: twitterUrl, label: 'Twitter', icon: 'twitter' });
+		}
+		if (settings.instagram_url) {
+			links.push({ href: settings.instagram_url, label: 'Instagram', icon: 'instagram' });
+		}
+		if (settings.linkedin_url) {
+			links.push({ href: settings.linkedin_url, label: 'LinkedIn', icon: 'linkedin' });
+		}
+		if (settings.youtube_url) {
+			links.push({ href: settings.youtube_url, label: 'YouTube', icon: 'youtube' });
+		}
+		return links;
+	});
 </script>
 
 <footer class="bg-dark-950 border-t border-dark-800">
@@ -30,22 +58,25 @@
 			<!-- Brand Section -->
 			<div class="space-y-4">
 				<div class="flex items-center space-x-3">
-					<img src="/logo.png" alt="Preaching Fingers" class="h-12 w-12 object-contain" />
+					<img src={settings.logo_url} alt={settings.site_name} class="h-12 w-12 object-contain" />
 					<div>
-						<div class="text-lg font-bold text-primary-400">Preaching Fingers</div>
+						<div class="text-lg font-bold text-primary-400">{settings.site_name}</div>
 						<div class="text-xs text-accent-400 font-medium">Music & Multimedia</div>
 					</div>
 				</div>
 				<p class="text-dark-300 text-sm leading-relaxed">
-					Creativity that empowers. Media that transforms. Led by Aliu Ifeoluwa Philemon.
+					{settings.site_description}
 				</p>
-				<div class="flex space-x-3">
-					{#each footerLinks.social as social}
-						<a
-							href={social.href}
-							class="w-10 h-10 rounded-lg bg-dark-800 hover:bg-primary-600 text-dark-300 hover:text-white flex items-center justify-center transition-all duration-200 hover:scale-110"
-							aria-label={social.label}
-						>
+				{#if socialLinks().length > 0}
+					<div class="flex space-x-3">
+						{#each socialLinks() as social}
+							<a
+								href={social.href}
+								target="_blank"
+								rel="noopener noreferrer"
+								class="w-10 h-10 rounded-lg bg-dark-800 hover:bg-primary-600 text-dark-300 hover:text-white flex items-center justify-center transition-all duration-200 hover:scale-110"
+								aria-label={social.label}
+							>
 							{#if social.icon === 'facebook'}
 								<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
 									<path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
@@ -70,6 +101,7 @@
 						</a>
 					{/each}
 				</div>
+				{/if}
 			</div>
 
 			<!-- Quick Links -->
@@ -110,25 +142,35 @@
 			<div>
 				<h3 class="text-lg font-semibold text-primary-400 mb-4">Get In Touch</h3>
 				<ul class="space-y-3 text-sm text-dark-300">
-					<li class="flex items-start space-x-2">
-						<svg class="w-5 h-5 text-accent-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-						</svg>
-						<span>info@preachingfingers.com</span>
-					</li>
-					<li class="flex items-start space-x-2">
-						<svg class="w-5 h-5 text-accent-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-						</svg>
-						<span>+234 XXX XXX XXXX</span>
-					</li>
-					<li class="flex items-start space-x-2">
-						<svg class="w-5 h-5 text-accent-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-						</svg>
-						<span>Lagos, Nigeria</span>
-					</li>
+					{#if settings.contact_email}
+						<li class="flex items-start space-x-2">
+							<svg class="w-5 h-5 text-accent-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+							</svg>
+							<a href="mailto:{settings.contact_email}" class="hover:text-primary-400 transition-colors">
+								{settings.contact_email}
+							</a>
+						</li>
+					{/if}
+					{#if settings.contact_phone}
+						<li class="flex items-start space-x-2">
+							<svg class="w-5 h-5 text-accent-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+							</svg>
+							<a href="tel:{settings.contact_phone}" class="hover:text-primary-400 transition-colors">
+								{settings.contact_phone}
+							</a>
+						</li>
+					{/if}
+					{#if settings.address}
+						<li class="flex items-start space-x-2">
+							<svg class="w-5 h-5 text-accent-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+							</svg>
+							<span>{settings.address}</span>
+						</li>
+					{/if}
 				</ul>
 			</div>
 		</div>
