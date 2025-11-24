@@ -4,18 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c1e0ef60-02cb-4537-b4bb-ff0932dbc8d0" name="Changes" comment="Updating the admin panel">
-      <change beforePath="$PROJECT_DIR$/src/lib/components/Footer.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/components/Footer.svelte" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/lib/pocketbase.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/pocketbase.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/routes/+page.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/+page.svelte" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/routes/about/+page.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/about/+page.svelte" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/routes/awards/+page.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/awards/+page.svelte" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/routes/blog/+page.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/blog/+page.svelte" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/routes/collaborations/+page.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/collaborations/+page.svelte" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/routes/contact/+page.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/contact/+page.svelte" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/routes/portfolio/+page.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/portfolio/+page.svelte" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/routes/testimonials/+page.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/testimonials/+page.svelte" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/robots.txt" beforeDir="false" afterPath="$PROJECT_DIR$/static/robots.txt" afterDir="false" />
+    <list default="true" id="c1e0ef60-02cb-4537-b4bb-ff0932dbc8d0" name="Changes" comment="Site Settings activated">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -83,7 +73,7 @@
       <updated>1763123167820</updated>
       <workItem from="1763123170784" duration="2059000" />
       <workItem from="1763310085161" duration="8000" />
-      <workItem from="1763920872004" duration="8622000" />
+      <workItem from="1763920872004" duration="10282000" />
     </task>
     <task id="LOCAL-00001" summary="My First Commit">
       <option name="closed" value="true" />
@@ -109,7 +99,23 @@
       <option name="project" value="LOCAL" />
       <updated>1763985644889</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Site Settings activated">
+      <option name="closed" value="true" />
+      <created>1763991671165</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1763991671165</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Site Settings activated">
+      <option name="closed" value="true" />
+      <created>1763994756333</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1763994756333</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -120,6 +126,7 @@
     <option name="CHECK_NEW_TODO" value="false" />
     <MESSAGE value="My First Commit" />
     <MESSAGE value="Updating the admin panel" />
-    <option name="LAST_COMMIT_MESSAGE" value="Updating the admin panel" />
+    <MESSAGE value="Site Settings activated" />
+    <option name="LAST_COMMIT_MESSAGE" value="Site Settings activated" />
   </component>
 </project>
