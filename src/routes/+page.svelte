@@ -1,58 +1,55 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import { pb } from '$lib/pocketbase';
 	import HeroSlider from '$lib/components/HeroSlider.svelte';
 	import Animate from '$lib/components/Animate.svelte';
 
-	const stats = [
-		{ value: '15+', label: 'Years Experience' },
-		{ value: '500+', label: 'Projects Completed' },
-		{ value: '1000+', label: 'People Trained' },
-		{ value: '3', label: 'Foundations Led' }
-	];
+	let stats = $state<any[]>([]);
+	let services = $state<any[]>([]);
+	let initiatives = $state<any[]>([]);
+	let loading = $state(true);
 
-	const services = [
-		{
-			icon: 'music',
-			title: 'Music & Sound Production',
-			description: 'Studio recordings, live sound setups, and professional event production.',
-			link: '/portfolio#music'
-		},
-		{
-			icon: 'video',
-			title: 'Media & Video Works',
-			description: 'Music videos, documentaries, and compelling promotional content.',
-			link: '/portfolio#media'
-		},
-		{
-			icon: 'education',
-			title: 'Creative Training',
-			description: 'Empowering the next generation through workshops and skill programs.',
-			link: '/empowerment'
-		},
-		{
-			icon: 'collaboration',
-			title: 'Technical Consultancy',
-			description: 'Church media setup, live streaming systems, and media strategy.',
-			link: '/collaborations'
-		}
-	];
+	onMount(async () => {
+		try {
+			// Fetch stats
+			const statsData = await pb.collection('stats').getFullList({
+				sort: 'sort_order'
+			});
+			stats = statsData;
 
-	const highlights = [
-		{
-			organization: 'Preaching Fingers Music & Multimedia',
-			role: 'Founder & Creative Director',
-			description: 'Leading innovative media production and creative services'
-		},
-		{
-			organization: 'Jesutofunwa Empowerment Foundation',
-			role: 'Program Coordinator',
-			description: 'Coordinating youth empowerment and creative skill programs'
-		},
-		{
-			organization: 'SASIF & ZEDD Empowerment Foundation',
-			role: 'Director',
-			description: 'Driving sustainable community growth through media literacy'
+			// Fetch services
+			const servicesData = await pb.collection('services').getFullList({
+				sort: 'sort_order',
+				filter: 'featured = true || featured = false'
+			});
+			services = servicesData;
+
+			// Fetch active initiatives
+			const initiativesData = await pb.collection('initiatives').getFullList({
+				filter: 'active = true',
+				sort: '-created'
+			});
+			initiatives = initiativesData;
+		} catch (err) {
+			console.error('Error fetching data:', err);
+		} finally {
+			loading = false;
 		}
-	];
+	});
+
+	function getServiceIcon(iconName: string) {
+		const icons: Record<string, string> = {
+			'music': '🎵',
+			'video': '🎬',
+			'education': '📚',
+			'collaboration': '🤝',
+			'lucide-music': '🎵',
+			'lucide-video': '🎬',
+			'lucide-book': '📚',
+			'lucide-users': '🤝'
+		};
+		return icons[iconName] || '🎵';
+	}
 </script>
 
 <svelte:head>
@@ -70,18 +67,22 @@
 		<div class="absolute inset-0" style="background-image: radial-gradient(circle at 1px 1px, rgb(var(--color-primary-400) / 0.3) 1px, transparent 0); background-size: 40px 40px;"></div>
 	</div>
 	<div class="relative container mx-auto px-4 sm:px-6 lg:px-8">
-		<div class="grid grid-cols-2 lg:grid-cols-4 gap-8">
-			{#each stats as stat, i}
-				<Animate variant="scale" duration={0.6} delay={i * 0.1}>
-					<div class="text-center group">
-						<div class="text-5xl md:text-6xl lg:text-7xl font-bold bg-gradient-to-r from-primary-400 to-accent-400 bg-clip-text text-transparent group-hover:scale-110 transition-transform">
-							{stat.value}
+		{#if loading}
+			<div class="text-center text-dark-400">Loading stats...</div>
+		{:else if stats.length > 0}
+			<div class="grid grid-cols-2 lg:grid-cols-4 gap-8">
+				{#each stats as stat, i}
+					<Animate variant="scale" duration={0.6} delay={i * 0.1}>
+						<div class="text-center group">
+							<div class="text-5xl md:text-6xl lg:text-7xl font-bold bg-gradient-to-r from-primary-400 to-accent-400 bg-clip-text text-transparent group-hover:scale-110 transition-transform">
+								{stat.value}
+							</div>
+							<div class="text-dark-300 text-base md:text-lg mt-3">{stat.label}</div>
 						</div>
-						<div class="text-dark-300 text-base md:text-lg mt-3">{stat.label}</div>
-					</div>
-				</Animate>
-			{/each}
-		</div>
+					</Animate>
+				{/each}
+			</div>
+		{/if}
 	</div>
 </section>
 
@@ -109,40 +110,36 @@
 			</div>
 		</Animate>
 
-		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-			{#each services as service, i}
-				<Animate variant="slide-up" duration={0.6} delay={i * 0.1}>
-					<a
-						href={service.link}
-						class="group p-8 bg-dark-800 border border-primary-600/30 rounded-2xl hover:border-primary-600 transition-all duration-300 hover:shadow-2xl hover:shadow-primary-600/20 hover:-translate-y-2 block"
-					>
-						<div class="text-5xl mb-6">
-							{#if service.icon === 'music'}
-								🎵
-							{:else if service.icon === 'video'}
-								🎬
-							{:else if service.icon === 'education'}
-								📚
-							{:else if service.icon === 'collaboration'}
-								🤝
-							{/if}
-						</div>
-						<h3 class="text-2xl font-bold text-dark-100 mb-4 group-hover:text-primary-400 transition-colors">
-							{service.title}
-						</h3>
-						<p class="text-dark-400 text-base leading-relaxed">
-							{service.description}
-						</p>
-						<div class="mt-5 text-accent-400 text-base font-medium flex items-center space-x-1 group-hover:space-x-2 transition-all">
-							<span>Learn more</span>
-							<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-							</svg>
-						</div>
-					</a>
-				</Animate>
-			{/each}
-		</div>
+		{#if loading}
+			<div class="text-center text-dark-400">Loading services...</div>
+		{:else if services.length > 0}
+			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+				{#each services as service, i}
+					<Animate variant="slide-up" duration={0.6} delay={i * 0.1}>
+						<a
+							href="/portfolio#{service.slug}"
+							class="group p-8 bg-dark-800 border border-primary-600/30 rounded-2xl hover:border-primary-600 transition-all duration-300 hover:shadow-2xl hover:shadow-primary-600/20 hover:-translate-y-2 block"
+						>
+							<div class="text-5xl mb-6">
+								{getServiceIcon(service.icon || '')}
+							</div>
+							<h3 class="text-2xl font-bold text-dark-100 mb-4 group-hover:text-primary-400 transition-colors">
+								{service.title}
+							</h3>
+							<p class="text-dark-400 text-base leading-relaxed">
+								{service.description}
+							</p>
+							<div class="mt-5 text-accent-400 text-base font-medium flex items-center space-x-1 group-hover:space-x-2 transition-all">
+								<span>Learn more</span>
+								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+								</svg>
+							</div>
+						</a>
+					</Animate>
+				{/each}
+			</div>
+		{/if}
 	</div>
 </section>
 
@@ -164,24 +161,28 @@
 			</div>
 		</Animate>
 
-		<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-			{#each highlights as highlight, i}
-				<Animate variant="slide-up" duration={0.6} delay={i * 0.15}>
-					<div class="p-10 bg-gradient-to-br from-dark-800 to-dark-900 border border-primary-600/30 rounded-2xl hover:border-primary-600 transition-all duration-300 hover:shadow-xl">
-					<div class="h-1 w-16 bg-gradient-to-r from-primary-600 to-accent-600 rounded-full mb-6"></div>
-					<h3 class="text-2xl font-bold text-primary-400 mb-3">
-						{highlight.organization}
-					</h3>
-					<div class="text-accent-400 text-base font-medium mb-5">
-						{highlight.role}
-					</div>
-					<p class="text-dark-300 text-base leading-relaxed">
-						{highlight.description}
-					</p>
-					</div>
-				</Animate>
-			{/each}
-		</div>
+		{#if loading}
+			<div class="text-center text-dark-400">Loading initiatives...</div>
+		{:else if initiatives.length > 0}
+			<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+				{#each initiatives as initiative, i}
+					<Animate variant="slide-up" duration={0.6} delay={i * 0.15}>
+						<div class="p-10 bg-gradient-to-br from-dark-800 to-dark-900 border border-primary-600/30 rounded-2xl hover:border-primary-600 transition-all duration-300 hover:shadow-xl">
+						<div class="h-1 w-16 bg-gradient-to-r from-primary-600 to-accent-600 rounded-full mb-6"></div>
+						{#if initiative.icon}
+							<div class="text-4xl mb-4">{initiative.icon}</div>
+						{/if}
+						<h3 class="text-2xl font-bold text-primary-400 mb-3">
+							{initiative.title}
+						</h3>
+						<p class="text-dark-300 text-base leading-relaxed">
+							{initiative.description}
+						</p>
+						</div>
+					</Animate>
+				{/each}
+			</div>
+		{/if}
 	</div>
 </section>
 

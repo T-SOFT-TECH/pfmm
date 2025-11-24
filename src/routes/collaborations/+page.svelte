@@ -1,43 +1,39 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import { pb } from '$lib/pocketbase';
 	import Animate from '$lib/components/Animate.svelte';
 
-	const collaborations = [
-		{
-			name: 'Gbedu Radio Communication, Lagos',
-			type: 'Media Partnership',
-			description: 'Media content creation and sound production for one of Lagos\' leading radio stations.',
-			services: ['Sound Production', 'Media Content', 'Technical Support'],
-			icon: '📻'
-		},
-		{
-			name: 'Christ Apostolic Church, Doncaster (UK)',
-			type: 'International Project',
-			description: 'Complete sound and media installation with comprehensive training for the technical team.',
-			services: ['Media Installation', 'Sound Systems', 'Training'],
-			icon: '⛪'
-		},
-		{
-			name: 'TSoft Technologies',
-			type: 'Technology Partner',
-			description: 'Live streaming and digital media production for various corporate and community events.',
-			services: ['Live Streaming', 'Digital Media', 'Event Production'],
-			icon: '💻'
-		},
-		{
-			name: 'Deblaizer Academy',
-			type: 'Education Partnership',
-			description: 'Music production and photography education programs for aspiring creatives.',
-			services: ['Music Education', 'Photography', 'Skill Development'],
-			icon: '🎓'
-		},
-		{
-			name: 'SASIF & ZEDD Empowerment Foundation',
-			type: 'Community Initiative',
-			description: 'Youth development and creative training programs focused on sustainable community growth.',
-			services: ['Youth Training', 'Creative Development', 'Mentorship'],
-			icon: '🌱'
+	let collaborations = $state<any[]>([]);
+	let loading = $state(true);
+
+	onMount(async () => {
+		try {
+			const collabsData = await pb.collection('collaborations').getFullList({
+				sort: '-start_date,-created'
+			});
+			collaborations = collabsData;
+		} catch (err) {
+			console.error('Error fetching collaborations:', err);
+		} finally {
+			loading = false;
 		}
-	];
+	});
+
+	function getLogoUrl(collab: any) {
+		if (!collab.logo) return null;
+		return pb.files.getUrl(collab, collab.logo);
+	}
+
+	function getTypeIcon(type: string) {
+		const icons: Record<string, string> = {
+			'media': '📻',
+			'education': '🎓',
+			'corporate': '💻',
+			'nonprofit': '🌱',
+			'other': '🤝'
+		};
+		return icons[type] || '🤝';
+	}
 </script>
 
 <svelte:head>
@@ -77,35 +73,52 @@
 <!-- Collaborations Grid -->
 <section class="py-20 bg-dark-900">
 	<div class="container mx-auto px-4 sm:px-6 lg:px-8">
-		<div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
-			{#each collaborations as collab, i}
-				<Animate variant="slide-up" duration={0.6} delay={i * 0.1}>
-					<div class="bg-dark-800 border border-primary-600/30 rounded-2xl p-8 hover:border-primary-600 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
-					<div class="flex items-start space-x-4 mb-6">
-						<div class="text-5xl">{collab.icon}</div>
-						<div class="flex-1">
-							<div class="text-accent-400 text-sm font-medium mb-2">{collab.type}</div>
-							<h3 class="text-2xl font-bold text-dark-100">
-								{collab.name}
-							</h3>
+		{#if loading}
+			<div class="text-center py-20">
+				<p class="text-dark-400 text-lg">Loading collaborations...</p>
+			</div>
+		{:else if collaborations.length > 0}
+			<div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+				{#each collaborations as collab, i}
+					<Animate variant="slide-up" duration={0.6} delay={i * 0.1}>
+						<div class="bg-dark-800 border border-primary-600/30 rounded-2xl p-8 hover:border-primary-600 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
+						<div class="flex items-start space-x-4 mb-6">
+							<div class="text-5xl">{getTypeIcon(collab.type)}</div>
+							<div class="flex-1">
+								<div class="text-accent-400 text-sm font-medium mb-2">{collab.type}</div>
+								<h3 class="text-2xl font-bold text-dark-100">
+									{collab.partner_name}
+								</h3>
+								{#if collab.website}
+									<a href={collab.website} target="_blank" rel="noopener noreferrer" class="text-primary-400 text-sm hover:underline">
+										Visit website →
+									</a>
+								{/if}
+							</div>
 						</div>
-					</div>
 
-					<p class="text-dark-400 leading-relaxed mb-6">
-						{collab.description}
-					</p>
+						<p class="text-dark-400 leading-relaxed mb-6">
+							{collab.description}
+						</p>
 
-					<div class="flex flex-wrap gap-2">
-						{#each collab.services as service}
-							<span class="px-3 py-1 bg-dark-700 text-primary-400 text-xs rounded-full">
-								{service}
-							</span>
-						{/each}
-					</div>
-					</div>
-				</Animate>
-			{/each}
-		</div>
+						{#if collab.services && Array.isArray(collab.services)}
+							<div class="flex flex-wrap gap-2">
+								{#each collab.services as service}
+									<span class="px-3 py-1 bg-dark-700 text-primary-400 text-xs rounded-full">
+										{service}
+									</span>
+								{/each}
+							</div>
+						{/if}
+						</div>
+					</Animate>
+				{/each}
+			</div>
+		{:else}
+			<div class="text-center py-20">
+				<p class="text-dark-400 text-lg">No collaborations to display yet.</p>
+			</div>
+		{/if}
 	</div>
 </section>
 

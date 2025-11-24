@@ -32,7 +32,7 @@
 	<title>Admin Panel - Preaching Fingers</title>
 </svelte:head>
 
-<div class="min-h-screen bg-dark-950 flex">
+<div class="min-h-screen bg-slate-950 flex">
 	<!-- Sidebar -->
 	<AdminSidebar bind:sidebarOpen />
 

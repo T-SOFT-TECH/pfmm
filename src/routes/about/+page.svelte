@@ -1,43 +1,61 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import { pb } from '$lib/pocketbase';
 	import Animate from '$lib/components/Animate.svelte';
 
-	const experiences = [
-		{
-			title: 'Preaching Fingers Music & Multimedia',
-			role: 'Founder & Creative Director',
-			period: '2015 - Present',
-			description: 'Leading music production, video editing, live sound, and media strategy for diverse clients across Nigeria and internationally.',
-			icon: '🎵'
-		},
-		{
-			title: 'Jesutofunwa Empowerment Foundation',
-			role: 'Program Coordinator',
-			period: '2018 - Present',
-			description: 'Coordinating media and digital literacy programs focused on empowering young people with practical creative skills.',
-			icon: '💡'
-		},
-		{
-			title: 'SASIF & ZEDD Empowerment Foundation',
-			role: 'Director',
-			period: '2019 - Present',
-			description: 'Leading youth empowerment initiatives, creative skill acquisition programs, and sustainable community growth projects.',
-			icon: '🌟'
+	let experiences = $state<any[]>([]);
+	let skills = $state<any[]>([]);
+	let values = $state<any[]>([]);
+	let loading = $state(true);
+
+	onMount(async () => {
+		try {
+			// Fetch experiences
+			const experiencesData = await pb.collection('experiences').getFullList({
+				sort: '-start_date'
+			});
+			experiences = experiencesData;
+
+			// Fetch skills
+			const skillsData = await pb.collection('skills').getFullList({
+				sort: 'category,name'
+			});
+			skills = skillsData;
+
+			// Fetch values
+			const valuesData = await pb.collection('values').getFullList({
+				sort: 'sort_order'
+			});
+			values = valuesData;
+		} catch (err) {
+			console.error('Error fetching data:', err);
+		} finally {
+			loading = false;
 		}
-	];
+	});
 
-	const skills = [
-		{ category: 'Audio Production', items: ['Music Production', 'Sound Engineering', 'Live Sound', 'Audio Editing', 'Mixing & Mastering'] },
-		{ category: 'Video & Media', items: ['Video Editing', 'Music Videos', 'Documentaries', 'Live Streaming', 'Content Creation'] },
-		{ category: 'Creative Education', items: ['Workshop Facilitation', 'Mentorship', 'Curriculum Development', 'Training Programs'] },
-		{ category: 'Technical Services', items: ['Media Setup', 'Church Sound Systems', 'Event Production', 'Media Consultancy'] }
-	];
+	function formatDate(date: string) {
+		if (!date) return '';
+		return new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+	}
 
-	const values = [
-		{ title: 'Excellence', description: 'Committed to the highest standards in every project', icon: '⭐' },
-		{ title: 'Innovation', description: 'Embracing new technologies and creative approaches', icon: '💫' },
-		{ title: 'Empowerment', description: 'Nurturing the next generation of creators', icon: '🚀' },
-		{ title: 'Impact', description: 'Creating meaningful change through media', icon: '🎯' }
-	];
+	function formatPeriod(exp: any) {
+		const start = formatDate(exp.start_date);
+		const end = exp.current ? 'Present' : formatDate(exp.end_date);
+		return `${start} - ${end}`;
+	}
+
+	// Group skills by category
+	const groupedSkills = $derived(() => {
+		const groups: Record<string, any[]> = {};
+		skills.forEach(skill => {
+			if (!groups[skill.category]) {
+				groups[skill.category] = [];
+			}
+			groups[skill.category].push(skill);
+		});
+		return groups;
+	});
 </script>
 
 <svelte:head>
@@ -111,27 +129,33 @@
 			</div>
 		</Animate>
 
-		<div class="max-w-5xl mx-auto space-y-8">
-			{#each experiences as exp, i}
-				<Animate variant="slide-up" duration={0.6} delay={i * 0.15}>
-					<div class="bg-dark-800 border border-primary-600/30 rounded-2xl p-8 hover:border-primary-600 transition-all duration-300 hover:shadow-xl">
-					<div class="flex flex-col md:flex-row md:items-start md:space-x-6">
-						<div class="text-5xl mb-4 md:mb-0">{exp.icon}</div>
-						<div class="flex-1">
-							<div class="flex flex-col md:flex-row md:items-center md:justify-between mb-3">
-								<h3 class="text-2xl font-bold text-primary-400 mb-2 md:mb-0">
-									{exp.title}
-								</h3>
-								<span class="text-accent-400 text-sm font-medium">{exp.period}</span>
+		{#if loading}
+			<div class="text-center text-dark-400">Loading experiences...</div>
+		{:else if experiences.length > 0}
+			<div class="max-w-5xl mx-auto space-y-8">
+				{#each experiences as exp, i}
+					<Animate variant="slide-up" duration={0.6} delay={i * 0.15}>
+						<div class="bg-dark-800 border border-primary-600/30 rounded-2xl p-8 hover:border-primary-600 transition-all duration-300 hover:shadow-xl">
+						<div class="flex flex-col md:flex-row md:items-start md:space-x-6">
+							<div class="text-5xl mb-4 md:mb-0">💼</div>
+							<div class="flex-1">
+								<div class="flex flex-col md:flex-row md:items-center md:justify-between mb-3">
+									<h3 class="text-2xl font-bold text-primary-400 mb-2 md:mb-0">
+										{exp.organization}
+									</h3>
+									<span class="text-accent-400 text-sm font-medium">{formatPeriod(exp)}</span>
+								</div>
+								<div class="text-dark-200 font-medium mb-3">{exp.role}</div>
+								{#if exp.description}
+									<p class="text-dark-400 leading-relaxed">{exp.description}</p>
+								{/if}
 							</div>
-							<div class="text-dark-200 font-medium mb-3">{exp.role}</div>
-							<p class="text-dark-400 leading-relaxed">{exp.description}</p>
 						</div>
-					</div>
-					</div>
-				</Animate>
-			{/each}
-		</div>
+						</div>
+					</Animate>
+				{/each}
+			</div>
+		{/if}
 	</div>
 </section>
 
@@ -149,27 +173,31 @@
 			</div>
 		</Animate>
 
-		<div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
-			{#each skills as skillSet, i}
-				<Animate variant="slide-up" duration={0.6} delay={i * 0.1}>
-					<div class="bg-dark-800 border border-primary-600/30 rounded-2xl p-8">
-					<h3 class="text-2xl font-bold text-primary-400 mb-6">
-						{skillSet.category}
-					</h3>
-					<ul class="space-y-3">
-						{#each skillSet.items as item}
-							<li class="flex items-center space-x-3 text-dark-200">
-								<svg class="w-5 h-5 text-accent-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-									<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-								</svg>
-								<span>{item}</span>
-							</li>
-						{/each}
-					</ul>
-					</div>
-				</Animate>
-			{/each}
-		</div>
+		{#if loading}
+			<div class="text-center text-dark-400">Loading skills...</div>
+		{:else if skills.length > 0}
+			<div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+				{#each Object.entries(groupedSkills()) as [category, categorySkills], i}
+					<Animate variant="slide-up" duration={0.6} delay={i * 0.1}>
+						<div class="bg-dark-800 border border-primary-600/30 rounded-2xl p-8">
+						<h3 class="text-2xl font-bold text-primary-400 mb-6">
+							{category.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
+						</h3>
+						<ul class="space-y-3">
+							{#each categorySkills as skill}
+								<li class="flex items-center space-x-3 text-dark-200">
+									<svg class="w-5 h-5 text-accent-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+										<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+									</svg>
+									<span>{skill.name}</span>
+								</li>
+							{/each}
+						</ul>
+						</div>
+					</Animate>
+				{/each}
+			</div>
+		{/if}
 	</div>
 </section>
 
@@ -187,21 +215,27 @@
 			</div>
 		</Animate>
 
-		<div class="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-			{#each values as value, i}
-				<Animate variant="scale" duration={0.6} delay={i * 0.1}>
-					<div class="text-center p-8 bg-dark-800 border border-primary-600/30 rounded-2xl hover:border-primary-600 transition-all duration-300 hover:-translate-y-2">
-					<div class="text-5xl mb-4">{value.icon}</div>
-					<h3 class="text-xl font-bold text-primary-400 mb-3">
-						{value.title}
-					</h3>
-					<p class="text-dark-400 text-sm leading-relaxed">
-						{value.description}
-					</p>
-					</div>
-				</Animate>
-			{/each}
-		</div>
+		{#if loading}
+			<div class="text-center text-dark-400">Loading values...</div>
+		{:else if values.length > 0}
+			<div class="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+				{#each values as value, i}
+					<Animate variant="scale" duration={0.6} delay={i * 0.1}>
+						<div class="text-center p-8 bg-dark-800 border border-primary-600/30 rounded-2xl hover:border-primary-600 transition-all duration-300 hover:-translate-y-2">
+						{#if value.icon}
+							<div class="text-5xl mb-4">{value.icon}</div>
+						{/if}
+						<h3 class="text-xl font-bold text-primary-400 mb-3">
+							{value.title}
+						</h3>
+						<p class="text-dark-400 text-sm leading-relaxed">
+							{value.description}
+						</p>
+						</div>
+					</Animate>
+				{/each}
+			</div>
+		{/if}
 	</div>
 </section>
 

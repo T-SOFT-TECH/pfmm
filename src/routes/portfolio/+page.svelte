@@ -1,90 +1,103 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import { pb } from '$lib/pocketbase';
 	import { fade, fly } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
 	import Animate from '$lib/components/Animate.svelte';
 
-	const categories = [
-		{ id: 'all', label: 'All Projects' },
-		{ id: 'music', label: 'Music & Sound' },
-		{ id: 'media', label: 'Video & Media' },
-		{ id: 'training', label: 'Training' },
-		{ id: 'installations', label: 'Installations' }
-	];
-
+	let projects = $state<any[]>([]);
+	let loading = $state(true);
 	let activeCategory = $state('all');
 
-	const projects = [
-		{
-			id: 1,
-			title: 'Studio Album Production',
-			category: 'music',
-			description: 'Complete album production including recording, mixing, and mastering for multiple artists.',
-			image: '/logo.png',
-			tags: ['Music Production', 'Mixing', 'Mastering']
-		},
-		{
-			id: 2,
-			title: 'Live Sound for Major Events',
-			category: 'music',
-			description: 'Professional live sound engineering for conferences and concerts across Nigeria.',
-			image: '/logo.png',
-			tags: ['Live Sound', 'Event Production']
-		},
-		{
-			id: 3,
-			title: 'Music Video Production',
-			category: 'media',
-			description: 'Creative direction and production of music videos for gospel and contemporary artists.',
-			image: '/logo.png',
-			tags: ['Video Production', 'Creative Direction']
-		},
-		{
-			id: 4,
-			title: 'Documentary Films',
-			category: 'media',
-			description: 'Producing impactful documentaries highlighting community empowerment stories.',
-			image: '/logo.png',
-			tags: ['Documentary', 'Storytelling']
-		},
-		{
-			id: 5,
-			title: 'Creative Skills Workshop',
-			category: 'training',
-			description: 'Comprehensive training programs in audio production and media creation for youth.',
-			image: '/logo.png',
-			tags: ['Training', 'Youth Empowerment']
-		},
-		{
-			id: 6,
-			title: 'Church Media Setup (UK)',
-			category: 'installations',
-			description: 'Complete sound and media installation for Christ Apostolic Church, Doncaster.',
-			image: '/logo.png',
-			tags: ['Installation', 'Church Media', 'Live Streaming']
-		},
-		{
-			id: 7,
-			title: 'Photography Education',
-			category: 'training',
-			description: 'Photography and media literacy workshops at Deblaizer Academy.',
-			image: '/logo.png',
-			tags: ['Photography', 'Education']
-		},
-		{
-			id: 8,
-			title: 'Live Streaming Systems',
-			category: 'installations',
-			description: 'Professional live streaming setup and training for churches and organizations.',
-			image: '/logo.png',
-			tags: ['Live Streaming', 'Technical Setup']
-		}
-	];
+	// Extract unique categories from projects
+	const categories = $derived([
+		{ id: 'all', label: 'All Projects' },
+		...Array.from(new Set(projects.map(p => p.category)))
+			.map(cat => ({
+				id: cat,
+				label: cat.charAt(0).toUpperCase() + cat.slice(1)
+			}))
+	]);
 
 	const filteredProjects = $derived(
 		activeCategory === 'all'
 			? projects
 			: projects.filter((p) => p.category === activeCategory)
 	);
+
+	onMount(async () => {
+		try {
+			const projectsData = await pb.collection('portfolio').getFullList({
+				filter: 'status = "published"',
+				sort: '-published_date,-created'
+			});
+			projects = projectsData;
+		} catch (err) {
+			console.error('Error fetching portfolio:', err);
+		} finally {
+			loading = false;
+		}
+	});
+
+	function getImageUrl(project: any) {
+		if (!project.image) return '/logo.png';
+		return pb.files.getUrl(project, project.image);
+	}
+
+	function getVideoEmbedUrl(url: string): string | null {
+		if (!url) return null;
+
+		// YouTube
+		const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+		const youtubeMatch = url.match(youtubeRegex);
+		if (youtubeMatch) {
+			return `https://www.youtube.com/embed/${youtubeMatch[1]}`;
+		}
+
+		// Vimeo
+		const vimeoRegex = /vimeo\.com\/(?:.*\/)?(\d+)/;
+		const vimeoMatch = url.match(vimeoRegex);
+		if (vimeoMatch) {
+			return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+		}
+
+		return null;
+	}
+
+	function getMusicEmbedUrl(url: string): string | null {
+		if (!url) return null;
+
+		// Spotify track
+		const spotifyTrackRegex = /spotify\.com\/track\/([a-zA-Z0-9]+)/;
+		const spotifyTrackMatch = url.match(spotifyTrackRegex);
+		if (spotifyTrackMatch) {
+			return `https://open.spotify.com/embed/track/${spotifyTrackMatch[1]}`;
+		}
+
+		// Spotify playlist/album
+		const spotifyPlaylistRegex = /spotify\.com\/(playlist|album)\/([a-zA-Z0-9]+)/;
+		const spotifyPlaylistMatch = url.match(spotifyPlaylistRegex);
+		if (spotifyPlaylistMatch) {
+			return `https://open.spotify.com/embed/${spotifyPlaylistMatch[1]}/${spotifyPlaylistMatch[2]}`;
+		}
+
+		// SoundCloud
+		if (url.includes('soundcloud.com')) {
+			return `https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%23ff5500&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false`;
+		}
+
+		// Apple Music (if URL contains music.apple.com)
+		if (url.includes('music.apple.com')) {
+			return url.replace('music.apple.com', 'embed.music.apple.com');
+		}
+
+		return null;
+	}
+
+	function getMusicFileUrl(project: any) {
+		if (!project.music_file) return null;
+		return pb.files.getUrl(project, project.music_file);
+	}
 </script>
 
 <svelte:head>
@@ -143,53 +156,112 @@
 <!-- Projects Grid -->
 <section class="py-20 bg-dark-900">
 	<div class="container mx-auto px-4 sm:px-6 lg:px-8">
-		{#key activeCategory}
-			<div
-				class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-				in:fly={{ y: 20, duration: 400, easing: quintOut }}
-				out:fade={{ duration: 200 }}
-			>
-				{#each filteredProjects as project (project.id)}
-					<div
-						class="group bg-dark-800 border border-primary-600/30 rounded-2xl overflow-hidden hover:border-primary-600 transition-all duration-300 hover:shadow-2xl hover:shadow-primary-600/20 hover:-translate-y-2"
-						in:fly={{ y: 20, duration: 300, delay: filteredProjects.indexOf(project) * 50, easing: quintOut }}
-					>
-						<!-- Project Image -->
-						<div class="aspect-video bg-dark-700 overflow-hidden">
-							<img
-								src={project.image}
-								alt={project.title}
-								class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-							/>
-						</div>
+		{#if loading}
+			<div class="text-center py-20">
+				<p class="text-dark-400 text-lg">Loading projects...</p>
+			</div>
+		{:else}
+			{#key activeCategory}
+				<div
+					class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+					in:fly={{ y: 20, duration: 400, easing: quintOut }}
+					out:fade={{ duration: 200 }}
+				>
+					{#each filteredProjects as project (project.id)}
+						<div
+							class="group bg-dark-800 border border-primary-600/30 rounded-2xl overflow-hidden hover:border-primary-600 transition-all duration-300 hover:shadow-2xl hover:shadow-primary-600/20 hover:-translate-y-2"
+							in:fly={{ y: 20, duration: 300, delay: filteredProjects.indexOf(project) * 50, easing: quintOut }}
+						>
+							<!-- Project Media (Video, Music, or Image) -->
+							<div class="aspect-video bg-dark-700 overflow-hidden relative">
+								{#if project.category === 'video' && project.video_url && getVideoEmbedUrl(project.video_url)}
+									<!-- Video Embed -->
+									<iframe
+										src={getVideoEmbedUrl(project.video_url)}
+										title={project.title}
+										frameborder="0"
+										allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+										allowfullscreen
+										class="w-full h-full"
+									></iframe>
+								{:else if project.category === 'music'}
+									<!-- Music Section -->
+									<div class="w-full h-full flex flex-col">
+										<!-- Thumbnail/Background -->
+										<div class="flex-1 relative">
+											<img
+												src={getImageUrl(project)}
+												alt={project.title}
+												class="w-full h-full object-cover"
+											/>
+											<div class="absolute inset-0 bg-gradient-to-t from-dark-900 via-dark-900/50 to-transparent"></div>
+											<div class="absolute inset-0 flex items-center justify-center">
+												<div class="text-6xl">🎵</div>
+											</div>
+										</div>
 
-						<!-- Project Content -->
-						<div class="p-6">
-							<h3 class="text-xl font-bold text-dark-100 mb-3 group-hover:text-primary-400 transition-colors">
-								{project.title}
-							</h3>
-							<p class="text-dark-400 text-sm leading-relaxed mb-4">
-								{project.description}
-							</p>
+										<!-- Music Player -->
+										<div class="bg-dark-900/95 p-4">
+											{#if project.music_url && getMusicEmbedUrl(project.music_url)}
+												<!-- Embedded Music Player (Spotify, SoundCloud, etc.) -->
+												<iframe
+													src={getMusicEmbedUrl(project.music_url)}
+													title={project.title}
+													frameborder="0"
+													allow="encrypted-media"
+													class="w-full h-20"
+												></iframe>
+											{:else if getMusicFileUrl(project)}
+												<!-- HTML5 Audio Player for uploaded files -->
+												<audio controls class="w-full">
+													<source src={getMusicFileUrl(project)} type="audio/mpeg" />
+													Your browser does not support the audio element.
+												</audio>
+											{:else}
+												<p class="text-xs text-dark-400 text-center">No audio available</p>
+											{/if}
+										</div>
+									</div>
+								{:else}
+									<!-- Project Image (for all other categories) -->
+									<img
+										src={getImageUrl(project)}
+										alt={project.title}
+										class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+									/>
+								{/if}
+							</div>
 
-							<!-- Tags -->
-							<div class="flex flex-wrap gap-2">
-								{#each project.tags as tag}
-									<span class="px-3 py-1 bg-dark-700 text-accent-400 text-xs rounded-full">
-										{tag}
-									</span>
-								{/each}
+							<!-- Project Content -->
+							<div class="p-6">
+								<h3 class="text-xl font-bold text-dark-100 mb-3 group-hover:text-primary-400 transition-colors">
+									{project.title}
+								</h3>
+								<p class="text-dark-400 text-sm leading-relaxed mb-4">
+									{project.excerpt || project.description?.substring(0, 150) + '...'}
+								</p>
+
+								<!-- Tags -->
+								{#if project.tags && Array.isArray(project.tags)}
+									<div class="flex flex-wrap gap-2">
+										{#each project.tags as tag}
+											<span class="px-3 py-1 bg-dark-700 text-accent-400 text-xs rounded-full">
+												{tag}
+											</span>
+										{/each}
+									</div>
+								{/if}
 							</div>
 						</div>
-					</div>
-				{/each}
-			</div>
-		{/key}
+					{/each}
+				</div>
+			{/key}
 
-		{#if filteredProjects.length === 0}
-			<div class="text-center py-20" in:fade={{ duration: 300 }}>
-				<p class="text-dark-400 text-lg">No projects found in this category.</p>
-			</div>
+			{#if filteredProjects.length === 0}
+				<div class="text-center py-20" in:fade={{ duration: 300 }}>
+					<p class="text-dark-400 text-lg">No projects found in this category.</p>
+				</div>
+			{/if}
 		{/if}
 	</div>
 </section>

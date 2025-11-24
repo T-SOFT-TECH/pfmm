@@ -1,36 +1,28 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import { pb } from '$lib/pocketbase';
 	import Animate from '$lib/components/Animate.svelte';
 
-	const awards = [
-		{
-			year: '2024',
-			title: 'Outstanding Media Innovation Award',
-			organization: 'De Blaizer Academy',
-			description: 'Recognized for innovative approaches in media education and production',
-			category: 'Innovation'
-		},
-		{
-			year: '2023',
-			title: 'Creative Leadership Recognition',
-			organization: 'Gbedu Communication Limited',
-			description: 'Acknowledged for exceptional leadership in creative media projects',
-			category: 'Leadership'
-		},
-		{
-			year: '2022',
-			title: 'Community Empowerment Award',
-			organization: 'Jesutofunwa Empowerment Foundation',
-			description: 'Honored for impactful youth empowerment and skill development programs',
-			category: 'Community Impact'
-		},
-		{
-			year: '2021',
-			title: 'Outstanding Contribution to Creative Development',
-			organization: 'Samba Music / Preaching Fingers',
-			description: 'Celebrated for advancing creative excellence in music production',
-			category: 'Excellence'
+	let awards = $state<any[]>([]);
+	let loading = $state(true);
+
+	onMount(async () => {
+		try {
+			const awardsData = await pb.collection('awards').getFullList({
+				sort: '-year,-created'
+			});
+			awards = awardsData;
+		} catch (err) {
+			console.error('Error fetching awards:', err);
+		} finally {
+			loading = false;
 		}
-	];
+	});
+
+	function getImageUrl(award: any) {
+		if (!award.image) return null;
+		return pb.files.getUrl(award, award.image);
+	}
 </script>
 
 <svelte:head>
@@ -70,40 +62,54 @@
 <!-- Awards Timeline -->
 <section class="py-20 bg-dark-900">
 	<div class="container mx-auto px-4 sm:px-6 lg:px-8">
-		<div class="max-w-4xl mx-auto space-y-12">
-			{#each awards as award, index}
-				<Animate variant="slide-up" duration={0.6} delay={index * 0.15}>
-					<div class="relative pl-8 md:pl-16 border-l-2 border-primary-600">
-					<!-- Year Badge -->
-					<div class="absolute left-0 -translate-x-1/2 w-12 h-12 bg-gradient-to-br from-primary-600 to-accent-600 rounded-full flex items-center justify-center text-white font-bold shadow-lg">
-						{award.year.slice(-2)}
-					</div>
-
-					<!-- Award Content -->
-					<div class="bg-dark-800 border border-primary-600/30 rounded-2xl p-8 hover:border-primary-600 transition-all duration-300 hover:shadow-xl ml-4">
-						<div class="flex flex-wrap items-center gap-3 mb-4">
-							<span class="px-3 py-1 bg-primary-600/20 text-primary-400 text-xs font-medium rounded-full">
-								{award.category}
-							</span>
-							<span class="text-dark-500 text-sm">{award.year}</span>
+		{#if loading}
+			<div class="text-center py-20">
+				<p class="text-dark-400 text-lg">Loading awards...</p>
+			</div>
+		{:else if awards.length > 0}
+			<div class="max-w-4xl mx-auto space-y-12">
+				{#each awards as award, index}
+					<Animate variant="slide-up" duration={0.6} delay={index * 0.15}>
+						<div class="relative pl-8 md:pl-16 border-l-2 border-primary-600">
+						<!-- Year Badge -->
+						<div class="absolute left-0 -translate-x-1/2 w-12 h-12 bg-gradient-to-br from-primary-600 to-accent-600 rounded-full flex items-center justify-center text-white font-bold shadow-lg">
+							{String(award.year).slice(-2)}
 						</div>
 
-						<h3 class="text-2xl font-bold text-dark-100 mb-2">
-							{award.title}
-						</h3>
+						<!-- Award Content -->
+						<div class="bg-dark-800 border border-primary-600/30 rounded-2xl p-8 hover:border-primary-600 transition-all duration-300 hover:shadow-xl ml-4">
+							<div class="flex flex-wrap items-center gap-3 mb-4">
+								{#if award.category}
+									<span class="px-3 py-1 bg-primary-600/20 text-primary-400 text-xs font-medium rounded-full">
+										{award.category}
+									</span>
+								{/if}
+								<span class="text-dark-500 text-sm">{award.year}</span>
+							</div>
 
-						<div class="text-accent-400 font-medium mb-4">
-							{award.organization}
+							<h3 class="text-2xl font-bold text-dark-100 mb-2">
+								{award.title}
+							</h3>
+
+							<div class="text-accent-400 font-medium mb-4">
+								{award.organization}
+							</div>
+
+							{#if award.description}
+								<p class="text-dark-400 leading-relaxed">
+									{award.description}
+								</p>
+							{/if}
 						</div>
-
-						<p class="text-dark-400 leading-relaxed">
-							{award.description}
-						</p>
-					</div>
-					</div>
-				</Animate>
-			{/each}
-		</div>
+						</div>
+					</Animate>
+				{/each}
+			</div>
+		{:else}
+			<div class="text-center py-20">
+				<p class="text-dark-400 text-lg">No awards to display yet.</p>
+			</div>
+		{/if}
 	</div>
 </section>
 

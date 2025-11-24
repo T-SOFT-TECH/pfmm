@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { pb } from '$lib/pocketbase';
 	import Animate from '$lib/components/Animate.svelte';
 
 	let formData = $state({
@@ -14,19 +15,32 @@
 	async function handleSubmit(e: Event) {
 		e.preventDefault();
 		formStatus = 'submitting';
+		statusMessage = '';
 
-		// Simulate form submission (integrate with PocketBase later)
-		await new Promise((resolve) => setTimeout(resolve, 1000));
+		try {
+			// Submit to PocketBase contact_messages collection
+			await pb.collection('contact_messages').create({
+				name: formData.name,
+				email: formData.email,
+				subject: formData.subject,
+				message: formData.message,
+				status: 'new'
+			});
 
-		// For now, just show success
-		formStatus = 'success';
-		statusMessage = 'Thank you for your message! I will get back to you soon.';
+			formStatus = 'success';
+			statusMessage = 'Thank you for your message! I will get back to you soon.';
 
-		// Reset form
-		setTimeout(() => {
-			formData = { name: '', email: '', subject: '', message: '' };
-			formStatus = 'idle';
-		}, 3000);
+			// Reset form after 3 seconds
+			setTimeout(() => {
+				formData = { name: '', email: '', subject: '', message: '' };
+				formStatus = 'idle';
+				statusMessage = '';
+			}, 3000);
+		} catch (err: any) {
+			formStatus = 'error';
+			statusMessage = 'Failed to send message. Please try again or contact me directly via email.';
+			console.error('Form submission error:', err);
+		}
 	}
 
 	const contactInfo = [
