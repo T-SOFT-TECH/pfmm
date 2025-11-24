@@ -35,8 +35,8 @@ export const siteSettings = writable<SiteSettings>(defaultSettings);
 let settingsLoaded = false;
 
 // Function to load site settings from database
-export async function loadSiteSettings(): Promise<SiteSettings> {
-	if (settingsLoaded) {
+export async function loadSiteSettings(forceReload: boolean = false): Promise<SiteSettings> {
+	if (settingsLoaded && !forceReload) {
 		// Return current store value if already loaded
 		let currentSettings: SiteSettings = defaultSettings;
 		siteSettings.subscribe(value => currentSettings = value)();
@@ -91,4 +91,14 @@ export function getSocialMediaUrls(settings: SiteSettings): string[] {
 	if (settings.youtube_url) urls.push(settings.youtube_url);
 	if (settings.linkedin_url) urls.push(settings.linkedin_url);
 	return urls;
+}
+
+// Function to clear settings cache and force reload
+export function clearSettingsCache() {
+	settingsLoaded = false;
+}
+
+// Function to reload settings (convenience function)
+export async function reloadSiteSettings(): Promise<SiteSettings> {
+	return loadSiteSettings(true);
 }

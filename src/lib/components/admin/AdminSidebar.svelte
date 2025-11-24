@@ -26,9 +26,35 @@
 	}
 </script>
 
-<aside class="w-64 bg-slate-900 border-r border-slate-800 fixed h-full z-30 transition-transform {sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0">
+<style>
+	/* Custom scrollbar styling */
+	nav::-webkit-scrollbar {
+		width: 6px;
+	}
+
+	nav::-webkit-scrollbar-track {
+		background: rgb(15 23 42); /* slate-900 */
+	}
+
+	nav::-webkit-scrollbar-thumb {
+		background: rgb(51 65 85); /* slate-700 */
+		border-radius: 3px;
+	}
+
+	nav::-webkit-scrollbar-thumb:hover {
+		background: rgb(71 85 105); /* slate-600 */
+	}
+
+	/* Firefox scrollbar */
+	nav {
+		scrollbar-width: thin;
+		scrollbar-color: rgb(51 65 85) rgb(15 23 42);
+	}
+</style>
+
+<aside class="w-64 bg-slate-900 border-r border-slate-800 fixed h-full z-30 transition-transform {sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 flex flex-col">
 	<!-- Logo/Brand -->
-	<div class="p-6 border-b border-slate-800">
+	<div class="p-6 border-b border-slate-800 flex-shrink-0">
 		<div class="flex items-center space-x-3">
 			<img src="/logo.png" alt="Logo" class="h-10 w-10 object-contain" />
 			<div>
@@ -38,8 +64,8 @@
 		</div>
 	</div>
 
-	<!-- Navigation -->
-	<nav class="p-4">
+	<!-- Navigation (Scrollable) -->
+	<nav class="flex-1 overflow-y-auto p-4">
 		<ul class="space-y-2">
 			{#each menuItems as item}
 				<li>
@@ -56,7 +82,7 @@
 	</nav>
 
 	<!-- Logout Button -->
-	<div class="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-800">
+	<div class="p-4 border-t border-slate-800 flex-shrink-0">
 		<button
 			onclick={handleLogout}
 			class="w-full px-4 py-3 bg-red-600/20 text-red-400 rounded-lg hover:bg-red-600 hover:text-white transition-colors flex items-center justify-center space-x-2"

@@ -8,17 +8,21 @@
 	let activeTab = $state('general');
 
 	// Settings state
+	let settingsId = $state<string | null>(null);
 	let settings = $state({
 		site_name: '',
+		site_url: '',
 		site_description: '',
+		logo_url: '/logo.png',
+		og_image_url: '/logo.png',
+		twitter_handle: '',
 		contact_email: '',
 		contact_phone: '',
-		contact_address: '',
-		social_facebook: '',
-		social_twitter: '',
-		social_linkedin: '',
-		social_instagram: '',
-		social_youtube: ''
+		address: '',
+		facebook_url: '',
+		instagram_url: '',
+		linkedin_url: '',
+		youtube_url: ''
 	});
 
 	// Stats state
@@ -42,7 +46,7 @@
 		{ id: 'stats', label: 'Statistics', icon: '📊' }
 	];
 
-	const statCategories = ['global', 'home', 'about', 'testimonials', 'admin'];
+	const statCategories = ['global', 'home', 'about', 'portfolio', 'testimonials', 'admin'];
 
 	onMount(async () => {
 		await loadSettings();
@@ -52,13 +56,29 @@
 	async function loadSettings() {
 		try {
 			loading = true;
-			const records = await pb.collection('site_settings').getFullList();
-
-			records.forEach((record: any) => {
-				if (record.key in settings) {
-					settings[record.key as keyof typeof settings] = record.value;
-				}
+			const records = await pb.collection('site_settings').getFullList({
+				sort: '-created'
 			});
+
+			if (records.length > 0) {
+				const record = records[0] as any;
+				settingsId = record.id;
+				settings = {
+					site_name: record.site_name || '',
+					site_url: record.site_url || '',
+					site_description: record.site_description || '',
+					logo_url: record.logo_url || '/logo.png',
+					og_image_url: record.og_image_url || '/logo.png',
+					twitter_handle: record.twitter_handle || '',
+					contact_email: record.contact_email || '',
+					contact_phone: record.contact_phone || '',
+					address: record.address || '',
+					facebook_url: record.facebook_url || '',
+					instagram_url: record.instagram_url || '',
+					linkedin_url: record.linkedin_url || '',
+					youtube_url: record.youtube_url || ''
+				};
+			}
 		} catch (err: any) {
 			error = err.message;
 		} finally {
@@ -69,10 +89,11 @@
 	async function loadStats() {
 		try {
 			const records = await pb.collection('stats').getFullList({
-				sort: 'category,sort_order'
+				sort: '-created'
 			});
 			stats = records;
 		} catch (err: any) {
+			console.error('Error loading stats:', err);
 			error = err.message;
 		}
 	}
@@ -82,27 +103,36 @@
 			error = '';
 			success = '';
 
-			for (const [key, value] of Object.entries(settings)) {
-				try {
-					// Try to get existing setting
-					const existing = await pb.collection('site_settings').getFirstListItem(`key="${key}"`);
-					await pb.collection('site_settings').update(existing.id, { value });
-				} catch {
-					// Create if doesn't exist
-					const category = key.startsWith('social_') ? 'social' :
-									 key.startsWith('contact_') ? 'contact' : 'general';
-					await pb.collection('site_settings').create({
-						key,
-						value,
-						category
-					});
-				}
+			const data = {
+				site_name: settings.site_name,
+				site_url: settings.site_url,
+				site_description: settings.site_description,
+				logo_url: settings.logo_url,
+				og_image_url: settings.og_image_url,
+				twitter_handle: settings.twitter_handle,
+				contact_email: settings.contact_email,
+				contact_phone: settings.contact_phone,
+				address: settings.address,
+				facebook_url: settings.facebook_url,
+				instagram_url: settings.instagram_url,
+				linkedin_url: settings.linkedin_url,
+				youtube_url: settings.youtube_url
+			};
+
+			if (settingsId) {
+				// Update existing record
+				await pb.collection('site_settings').update(settingsId, data);
+			} else {
+				// Create new record
+				const record = await pb.collection('site_settings').create(data);
+				settingsId = record.id;
 			}
 
 			success = 'Settings saved successfully!';
 			setTimeout(() => success = '', 3000);
 		} catch (err: any) {
 			error = err.message;
+			console.error('Save settings error:', err);
 		}
 	}
 
@@ -226,21 +256,56 @@
 		{#if activeTab === 'general'}
 			<div class="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-6">
 				<div>
-					<label class="block text-sm font-medium text-slate-300 mb-2">Site Name</label>
+					<label class="block text-sm font-medium text-slate-300 mb-2">Site Name *</label>
 					<input
 						type="text"
 						bind:value={settings.site_name}
+						placeholder="Preaching Fingers Music Ministry"
 						class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-primary-600"
 					/>
 				</div>
 
 				<div>
-					<label class="block text-sm font-medium text-slate-300 mb-2">Site Description</label>
+					<label class="block text-sm font-medium text-slate-300 mb-2">Site URL *</label>
+					<input
+						type="url"
+						bind:value={settings.site_url}
+						placeholder="https://pfmm.com"
+						class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-primary-600"
+					/>
+					<p class="text-xs text-slate-500 mt-1">Your website domain (used for SEO and social sharing)</p>
+				</div>
+
+				<div>
+					<label class="block text-sm font-medium text-slate-300 mb-2">Site Description *</label>
 					<textarea
 						bind:value={settings.site_description}
 						rows="3"
+						placeholder="Professional music ministry, media production, and creative empowerment services"
 						class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-primary-600"
 					></textarea>
+					<p class="text-xs text-slate-500 mt-1">Brief description for SEO and social media</p>
+				</div>
+
+				<div>
+					<label class="block text-sm font-medium text-slate-300 mb-2">Logo URL</label>
+					<input
+						type="text"
+						bind:value={settings.logo_url}
+						placeholder="/logo.png"
+						class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-primary-600"
+					/>
+				</div>
+
+				<div>
+					<label class="block text-sm font-medium text-slate-300 mb-2">OG Image URL</label>
+					<input
+						type="text"
+						bind:value={settings.og_image_url}
+						placeholder="/logo.png"
+						class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-primary-600"
+					/>
+					<p class="text-xs text-slate-500 mt-1">Image shown when sharing on social media (1200x630px recommended)</p>
 				</div>
 
 				<button
@@ -260,8 +325,10 @@
 					<input
 						type="email"
 						bind:value={settings.contact_email}
+						placeholder="info@pfmm.com"
 						class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-primary-600"
 					/>
+					<p class="text-xs text-slate-500 mt-1">Displayed in footer and contact page</p>
 				</div>
 
 				<div>
@@ -269,17 +336,21 @@
 					<input
 						type="tel"
 						bind:value={settings.contact_phone}
+						placeholder="+234 XXX XXX XXXX"
 						class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-primary-600"
 					/>
+					<p class="text-xs text-slate-500 mt-1">Displayed in footer and contact page</p>
 				</div>
 
 				<div>
 					<label class="block text-sm font-medium text-slate-300 mb-2">Address</label>
 					<textarea
-						bind:value={settings.contact_address}
+						bind:value={settings.address}
 						rows="2"
+						placeholder="Lagos, Nigeria"
 						class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-primary-600"
 					></textarea>
+					<p class="text-xs text-slate-500 mt-1">Displayed in footer and contact page</p>
 				</div>
 
 				<button
@@ -295,31 +366,22 @@
 		{#if activeTab === 'social'}
 			<div class="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-6">
 				<div>
+					<label class="block text-sm font-medium text-slate-300 mb-2">Twitter Handle</label>
+					<input
+						type="text"
+						bind:value={settings.twitter_handle}
+						placeholder="@pfmm or https://twitter.com/pfmm"
+						class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-primary-600"
+					/>
+					<p class="text-xs text-slate-500 mt-1">Enter @handle or full URL. Used for SEO and social sharing</p>
+				</div>
+
+				<div>
 					<label class="block text-sm font-medium text-slate-300 mb-2">Facebook URL</label>
 					<input
 						type="url"
-						bind:value={settings.social_facebook}
-						placeholder="https://facebook.com/..."
-						class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-primary-600"
-					/>
-				</div>
-
-				<div>
-					<label class="block text-sm font-medium text-slate-300 mb-2">Twitter/X URL</label>
-					<input
-						type="url"
-						bind:value={settings.social_twitter}
-						placeholder="https://twitter.com/..."
-						class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-primary-600"
-					/>
-				</div>
-
-				<div>
-					<label class="block text-sm font-medium text-slate-300 mb-2">LinkedIn URL</label>
-					<input
-						type="url"
-						bind:value={settings.social_linkedin}
-						placeholder="https://linkedin.com/in/..."
+						bind:value={settings.facebook_url}
+						placeholder="https://facebook.com/yourpage"
 						class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-primary-600"
 					/>
 				</div>
@@ -328,8 +390,18 @@
 					<label class="block text-sm font-medium text-slate-300 mb-2">Instagram URL</label>
 					<input
 						type="url"
-						bind:value={settings.social_instagram}
-						placeholder="https://instagram.com/..."
+						bind:value={settings.instagram_url}
+						placeholder="https://instagram.com/yourprofile"
+						class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-primary-600"
+					/>
+				</div>
+
+				<div>
+					<label class="block text-sm font-medium text-slate-300 mb-2">LinkedIn URL</label>
+					<input
+						type="url"
+						bind:value={settings.linkedin_url}
+						placeholder="https://linkedin.com/in/yourprofile"
 						class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-primary-600"
 					/>
 				</div>
@@ -338,8 +410,8 @@
 					<label class="block text-sm font-medium text-slate-300 mb-2">YouTube URL</label>
 					<input
 						type="url"
-						bind:value={settings.social_youtube}
-						placeholder="https://youtube.com/..."
+						bind:value={settings.youtube_url}
+						placeholder="https://youtube.com/@yourchannel"
 						class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-primary-600"
 					/>
 				</div>
