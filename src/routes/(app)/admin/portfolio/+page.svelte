@@ -27,7 +27,7 @@
 
 	let tagInput = $state('');
 
-	const categories = ['music', 'video', 'training', 'installation', 'other'];
+	const categories = ['music', 'video', 'training', 'installation', 'photography', 'live studio sessions', 'other'];
 	const statuses = ['draft', 'published'];
 
 	onMount(async () => {

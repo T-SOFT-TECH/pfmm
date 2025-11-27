@@ -4,8 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c1e0ef60-02cb-4537-b4bb-ff0932dbc8d0" name="Changes" comment="Site Settings activated">
+    <list default="true" id="c1e0ef60-02cb-4537-b4bb-ff0932dbc8d0" name="Changes" comment="Fix social links from database">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/(app)/admin/portfolio/+page.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/(app)/admin/portfolio/+page.svelte" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -74,6 +75,9 @@
       <workItem from="1763123170784" duration="2059000" />
       <workItem from="1763310085161" duration="8000" />
       <workItem from="1763920872004" duration="10282000" />
+      <workItem from="1763995372953" duration="84000" />
+      <workItem from="1764156395609" duration="28000" />
+      <workItem from="1764273671822" duration="1126000" />
     </task>
     <task id="LOCAL-00001" summary="My First Commit">
       <option name="closed" value="true" />
@@ -115,7 +119,15 @@
       <option name="project" value="LOCAL" />
       <updated>1763994756333</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Fix social links from database">
+      <option name="closed" value="true" />
+      <created>1763995426800</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1763995426800</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -127,6 +139,7 @@
     <MESSAGE value="My First Commit" />
     <MESSAGE value="Updating the admin panel" />
     <MESSAGE value="Site Settings activated" />
-    <option name="LAST_COMMIT_MESSAGE" value="Site Settings activated" />
+    <MESSAGE value="Fix social links from database" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fix social links from database" />
   </component>
 </project>
