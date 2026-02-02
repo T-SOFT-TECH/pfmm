@@ -14,7 +14,7 @@
 		slug: "",
 		content: "",
 		excerpt: "",
-		category: "Education",
+		category: "music",
 		tags: "",
 		featured_image: null as File | null,
 		read_time: 5,
@@ -23,11 +23,11 @@
 	});
 
 	const categories = [
-		"Education",
-		"Music",
-		"Empowerment",
-		"Technology",
-		"Other",
+		"music",
+		"ministry",
+		"technology",
+		"training",
+		"lifestyle",
 	];
 	const statuses = ["draft", "published"];
 
@@ -57,7 +57,7 @@
 			slug: "",
 			content: "",
 			excerpt: "",
-			category: "Education",
+			category: "music",
 			tags: "",
 			featured_image: null,
 			read_time: 5,
@@ -74,7 +74,7 @@
 			slug: post.slug || "",
 			content: post.content || "",
 			excerpt: post.excerpt || "",
-			category: post.category || "Education",
+			category: post.category || "music",
 			tags: Array.isArray(post.tags) ? post.tags.join(", ") : "",
 			featured_image: null,
 			read_time: post.read_time || 5,
