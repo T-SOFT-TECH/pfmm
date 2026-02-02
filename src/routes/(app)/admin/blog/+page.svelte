@@ -17,10 +17,17 @@
 		category: "music",
 		tags: "",
 		featured_image: null as File | null,
-		read_time: 5,
 		featured: false,
 		status: "draft",
+		published_date: new Date().toISOString().split("T")[0],
 	});
+
+	// Calculate read time based on content (avg 200 words per minute)
+	function calculateReadTime(content: string): number {
+		const words = content.trim().split(/\s+/).filter(word => word.length > 0).length;
+		const minutes = Math.ceil(words / 200);
+		return Math.max(1, minutes); // Minimum 1 minute
+	}
 
 	const categories = [
 		"music",
@@ -60,9 +67,9 @@
 			category: "music",
 			tags: "",
 			featured_image: null,
-			read_time: 5,
 			featured: false,
 			status: "draft",
+			published_date: new Date().toISOString().split("T")[0],
 		};
 		showModal = true;
 	}
@@ -77,9 +84,9 @@
 			category: post.category || "music",
 			tags: Array.isArray(post.tags) ? post.tags.join(", ") : "",
 			featured_image: null,
-			read_time: post.read_time || 5,
 			featured: post.featured || false,
 			status: post.status || "draft",
+			published_date: post.published_date ? post.published_date.split(" ")[0] : new Date().toISOString().split("T")[0],
 		};
 		showModal = true;
 	}
@@ -122,14 +129,11 @@
 						.filter((t) => t),
 				),
 			);
-			formData.append("read_time", form.read_time.toString());
+			formData.append("read_time", calculateReadTime(form.content).toString());
 			formData.append("featured", form.featured.toString());
 			formData.append("status", form.status);
 			formData.append("author", pb.authStore.model?.id || "");
-
-			if (form.status === "published" && !editingPost) {
-				formData.append("published_date", new Date().toISOString());
-			}
+			formData.append("published_date", form.published_date);
 
 			if (form.featured_image) {
 				formData.append("featured_image", form.featured_image);
@@ -416,7 +420,7 @@
 					></textarea>
 				</div>
 
-				<!-- Category, Status, Read Time -->
+				<!-- Category, Status, Published Date -->
 				<div class="grid grid-cols-3 gap-4">
 					<div>
 						<label
@@ -459,12 +463,12 @@
 					<div>
 						<label
 							class="block text-sm font-medium text-slate-300 mb-2"
-							>Read Time (min)</label
+							>Published Date *</label
 						>
 						<input
-							type="number"
-							bind:value={form.read_time}
-							min="1"
+							type="date"
+							bind:value={form.published_date}
+							required
 							class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-primary-600"
 						/>
 					</div>
