@@ -13,8 +13,10 @@
 		site_name: '',
 		site_url: '',
 		site_description: '',
-		logo_url: '/logo.png',
-		og_image_url: '/logo.png',
+		logo_url: '',
+		og_image_url: '',
+		logo: null as File | null,
+		og_image: null as File | null,
 		twitter_handle: '',
 		contact_email: '',
 		contact_phone: '',
@@ -25,33 +27,7 @@
 		youtube_url: ''
 	});
 
-	// Stats state
-	let stats = $state<any[]>([]);
-	let showStatsModal = $state(false);
-	let editingStat = $state<any>(null);
-	let statForm = $state({
-		key: '',
-		label: '',
-		value: '',
-		suffix: '',
-		icon: '',
-		category: 'global',
-		active: true
-	});
-
-	const tabs = [
-		{ id: 'general', label: 'General', icon: '⚙️' },
-		{ id: 'contact', label: 'Contact Info', icon: '📧' },
-		{ id: 'social', label: 'Social Media', icon: '🔗' },
-		{ id: 'stats', label: 'Statistics', icon: '📊' }
-	];
-
-	const statCategories = ['global', 'home', 'about', 'portfolio', 'testimonials', 'admin'];
-
-	onMount(async () => {
-		await loadSettings();
-		await loadStats();
-	});
+	// ... rest of the code ...
 
 	async function loadSettings() {
 		try {
@@ -67,8 +43,10 @@
 					site_name: record.site_name || '',
 					site_url: record.site_url || '',
 					site_description: record.site_description || '',
-					logo_url: record.logo_url || '/logo.png',
-					og_image_url: record.og_image_url || '/logo.png',
+					logo_url: record.logo ? pb.files.getUrl(record, record.logo) : '/logo.png',
+					og_image_url: record.og_image ? pb.files.getUrl(record, record.og_image) : '/logo.png',
+					logo: null,
+					og_image: null,
 					twitter_handle: record.twitter_handle || '',
 					contact_email: record.contact_email || '',
 					contact_phone: record.contact_phone || '',
@@ -98,37 +76,56 @@
 		}
 	}
 
+	function handleLogoChange(e: Event) {
+		const target = e.target as HTMLInputElement;
+		if (target.files && target.files[0]) {
+			settings.logo = target.files[0];
+			settings.logo_url = URL.createObjectURL(target.files[0]);
+		}
+	}
+
+	function handleOgImageChange(e: Event) {
+		const target = e.target as HTMLInputElement;
+		if (target.files && target.files[0]) {
+			settings.og_image = target.files[0];
+			settings.og_image_url = URL.createObjectURL(target.files[0]);
+		}
+	}
+
 	async function handleSaveSettings() {
 		try {
 			error = '';
 			success = '';
 
-			const data = {
-				site_name: settings.site_name,
-				site_url: settings.site_url,
-				site_description: settings.site_description,
-				logo_url: settings.logo_url,
-				og_image_url: settings.og_image_url,
-				twitter_handle: settings.twitter_handle,
-				contact_email: settings.contact_email,
-				contact_phone: settings.contact_phone,
-				address: settings.address,
-				facebook_url: settings.facebook_url,
-				instagram_url: settings.instagram_url,
-				linkedin_url: settings.linkedin_url,
-				youtube_url: settings.youtube_url
-			};
+			const formData = new FormData();
+			formData.append('site_name', settings.site_name);
+			formData.append('site_url', settings.site_url);
+			formData.append('site_description', settings.site_description);
+			formData.append('twitter_handle', settings.twitter_handle);
+			formData.append('contact_email', settings.contact_email);
+			formData.append('contact_phone', settings.contact_phone);
+			formData.append('address', settings.address);
+			formData.append('facebook_url', settings.facebook_url);
+			formData.append('instagram_url', settings.instagram_url);
+			formData.append('linkedin_url', settings.linkedin_url);
+			formData.append('youtube_url', settings.youtube_url);
+
+			if (settings.logo) {
+				formData.append('logo', settings.logo);
+			}
+			if (settings.og_image) {
+				formData.append('og_image', settings.og_image);
+			}
 
 			if (settingsId) {
-				// Update existing record
-				await pb.collection('site_settings').update(settingsId, data);
+				await pb.collection('site_settings').update(settingsId, formData);
 			} else {
-				// Create new record
-				const record = await pb.collection('site_settings').create(data);
+				const record = await pb.collection('site_settings').create(formData);
 				settingsId = record.id;
 			}
 
 			success = 'Settings saved successfully!';
+			await loadSettings(); // Reload to get the new file URLs
 			setTimeout(() => success = '', 3000);
 		} catch (err: any) {
 			error = err.message;
@@ -287,25 +284,44 @@
 					<p class="text-xs text-slate-500 mt-1">Brief description for SEO and social media</p>
 				</div>
 
-				<div>
-					<label class="block text-sm font-medium text-slate-300 mb-2">Logo URL</label>
-					<input
-						type="text"
-						bind:value={settings.logo_url}
-						placeholder="/logo.png"
-						class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-primary-600"
-					/>
-				</div>
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+					<!-- Logo Upload -->
+					<div class="space-y-4">
+						<label class="block text-sm font-medium text-slate-300">Site Logo</label>
+						<div class="flex items-center space-x-6">
+							<div class="w-24 h-24 bg-slate-800 rounded-xl flex items-center justify-center overflow-hidden border border-slate-700">
+								<img src={settings.logo_url} alt="Logo Preview" class="max-w-full max-h-full object-contain" />
+							</div>
+							<div class="flex-1">
+								<input
+									type="file"
+									accept="image/*"
+									onchange={handleLogoChange}
+									class="w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary-600 file:text-white hover:file:bg-primary-500 transition-all cursor-pointer"
+								/>
+								<p class="text-xs text-slate-500 mt-2">Recommended: Square PNG/SVG (min 512x512px)</p>
+							</div>
+						</div>
+					</div>
 
-				<div>
-					<label class="block text-sm font-medium text-slate-300 mb-2">OG Image URL</label>
-					<input
-						type="text"
-						bind:value={settings.og_image_url}
-						placeholder="/logo.png"
-						class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-primary-600"
-					/>
-					<p class="text-xs text-slate-500 mt-1">Image shown when sharing on social media (1200x630px recommended)</p>
+					<!-- OG Image Upload -->
+					<div class="space-y-4">
+						<label class="block text-sm font-medium text-slate-300">Social Share Image (OG Image)</label>
+						<div class="flex items-center space-x-6">
+							<div class="w-40 h-24 bg-slate-800 rounded-xl flex items-center justify-center overflow-hidden border border-slate-700">
+								<img src={settings.og_image_url} alt="OG Preview" class="w-full h-full object-cover" />
+							</div>
+							<div class="flex-1">
+								<input
+									type="file"
+									accept="image/*"
+									onchange={handleOgImageChange}
+									class="w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary-600 file:text-white hover:file:bg-primary-500 transition-all cursor-pointer"
+								/>
+								<p class="text-xs text-slate-500 mt-2">Recommended: 1200x630px JPG/PNG</p>
+							</div>
+						</div>
+					</div>
 				</div>
 
 				<button

@@ -1,14 +1,33 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { siteSettings, loadSiteSettings, type SiteSettings } from '$lib/stores/siteSettings';
+	import { pb } from '$lib/pocketbase';
 
 	const currentYear = new Date().getFullYear();
-	let settings = $state<SiteSettings>($siteSettings);
+	let settings = $state<any>({});
 
 	onMount(async () => {
-		await loadSiteSettings();
-		settings = $siteSettings;
+		try {
+			const records = await pb.collection('site_settings').getFullList({
+				sort: '-created',
+				limit: 1
+			});
+			if (records.length > 0) {
+				settings = records[0];
+			}
+		} catch (err) {
+			console.error('Error fetching site settings for footer:', err);
+		}
 	});
+
+	const logoUrl = $derived(() => {
+		if (settings.logo) {
+			return pb.files.getUrl(settings, settings.logo);
+		}
+		return '/logo.png';
+	});
+
+	const siteName = $derived(() => settings.site_name || 'Preaching Fingers');
+	const siteDescription = $derived(() => settings.site_description || 'Professional music ministry, media production, and creative empowerment services.');
 
 	const footerLinks = {
 		quick: [
@@ -58,14 +77,14 @@
 			<!-- Brand Section -->
 			<div class="space-y-4">
 				<div class="flex items-center space-x-3">
-					<img src={settings.logo_url} alt={settings.site_name} class="h-12 w-12 object-contain" />
+					<img src={logoUrl()} alt={siteName()} class="h-12 w-12 object-contain" />
 					<div>
-						<div class="text-lg font-bold text-primary-400">{settings.site_name}</div>
+						<div class="text-lg font-bold text-primary-400">{siteName()}</div>
 						<div class="text-xs text-accent-400 font-medium">Music & Multimedia</div>
 					</div>
 				</div>
 				<p class="text-dark-300 text-sm leading-relaxed">
-					{settings.site_description}
+					{siteDescription()}
 				</p>
 				{#if socialLinks().length > 0}
 					<div class="flex space-x-3">

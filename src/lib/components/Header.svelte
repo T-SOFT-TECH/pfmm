@@ -2,9 +2,34 @@
 	import { page } from '$app/stores';
 	import { pb, currentUser, logout } from '$lib/pocketbase';
 	import type { User } from '$lib/pocketbase';
+	import { onMount } from 'svelte';
 
 	let mobileMenuOpen = $state(false);
 	let userMenuOpen = $state(false);
+	let siteSettings = $state<any>(null);
+
+	onMount(async () => {
+		try {
+			const records = await pb.collection('site_settings').getFullList({
+				sort: '-created',
+				limit: 1
+			});
+			if (records.length > 0) {
+				siteSettings = records[0];
+			}
+		} catch (err) {
+			console.error('Error fetching site settings:', err);
+		}
+	});
+
+	const logoUrl = $derived(() => {
+		if (siteSettings?.logo) {
+			return pb.files.getUrl(siteSettings, siteSettings.logo);
+		}
+		return '/logo.png';
+	});
+
+	const siteName = $derived(() => siteSettings?.site_name || 'Preaching Fingers');
 
 	const navLinks = [
 		{ href: '/', label: 'Home' },
@@ -47,10 +72,10 @@
 		<div class="flex items-center justify-between h-20">
 			<!-- Logo -->
 			<a href="/" class="flex items-center space-x-3 group">
-				<img src="/logo.png" alt="Preaching Fingers" class="h-12 w-12 object-contain transition-transform group-hover:scale-110" />
+				<img src={logoUrl()} alt={siteName()} class="h-12 w-12 object-contain transition-transform group-hover:scale-110" />
 				<div class="hidden md:block">
 					<div class="text-lg font-bold text-primary-400 group-hover:text-primary-300 transition-colors">
-						Preaching Fingers
+						{siteName()}
 					</div>
 					<div class="text-xs text-accent-400 font-medium">Music & Multimedia</div>
 				</div>

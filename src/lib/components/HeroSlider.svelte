@@ -2,8 +2,9 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { fade, fly, scale } from 'svelte/transition';
 	import { quintOut, backOut, elasticOut } from 'svelte/easing';
+	import { pb } from '$lib/pocketbase';
 
-	const slides = [
+	const fallbackSlides = [
 		{
 			image: '/hero/adi-goldstein-sdtnZ4LgbWk-unsplash.jpg',
 			title: 'Creativity that empowers.',
@@ -34,17 +35,46 @@
 		}
 	];
 
+	let slides = $state<any[]>([]);
 	let currentSlide = $state(0);
 	let isPlaying = $state(true);
 	let interval: ReturnType<typeof setInterval> | null = null;
 	let textAnimationKey = $state(0);
+	let loading = $state(true);
+
+	async function loadSlides() {
+		try {
+			const records = await pb.collection('hero_slides').getFullList({
+				filter: 'active = true',
+				sort: 'sort_order'
+			});
+			
+			if (records.length > 0) {
+				slides = records.map(r => ({
+					...r,
+					image: pb.files.getUrl(r, r.image),
+					// Assign random effects for dynamic slides if not set
+					imageEffect: ['zoom-in', 'zoom-out', 'pan-left', 'pan-right'][Math.floor(Math.random() * 4)]
+				}));
+			} else {
+				slides = fallbackSlides;
+			}
+		} catch (err) {
+			console.error('Error loading hero slides:', err);
+			slides = fallbackSlides;
+		} finally {
+			loading = false;
+		}
+	}
 
 	function nextSlide() {
+		if (slides.length === 0) return;
 		currentSlide = (currentSlide + 1) % slides.length;
 		textAnimationKey++;
 	}
 
 	function prevSlide() {
+		if (slides.length === 0) return;
 		currentSlide = (currentSlide - 1 + slides.length) % slides.length;
 		textAnimationKey++;
 	}
@@ -77,7 +107,8 @@
 		}
 	}
 
-	onMount(() => {
+	onMount(async () => {
+		await loadSlides();
 		if (isPlaying) {
 			startAutoPlay();
 		}
@@ -89,162 +120,171 @@
 </script>
 
 <div class="relative h-screen w-full overflow-hidden">
-	<!-- Background Slides -->
-	{#each slides as slide, index (index)}
-		{#if index === currentSlide}
-			<div
-				class="absolute inset-0"
-				in:fade={{ duration: 1000, easing: quintOut }}
-				out:fade={{ duration: 500 }}
-			>
-				<!-- Image with different effects for each slide -->
-				<div class="absolute inset-0 animate-{slide.imageEffect}">
-					<img
-						src={slide.image}
-						alt={slide.title}
-						class="w-full h-full object-cover"
-					/>
-				</div>
+	{#if loading}
+		<div class="absolute inset-0 bg-dark-900 flex items-center justify-center">
+			<div class="text-primary-400 animate-pulse text-xl font-medium">Loading Experience...</div>
+		</div>
+	{:else}
+		<!-- Background Slides -->
+		{#each slides as slide, index (index)}
+			{#if index === currentSlide}
+				<div
+					class="absolute inset-0"
+					in:fade={{ duration: 1000, easing: quintOut }}
+					out:fade={{ duration: 500 }}
+				>
+					<!-- Image with different effects for each slide -->
+					<div class="absolute inset-0 animate-{slide.imageEffect}">
+						<img
+							src={slide.image}
+							alt={slide.title}
+							class="w-full h-full object-cover"
+						/>
+					</div>
 
-				<!-- Gradient Overlay -->
-				<div class="absolute inset-0 bg-gradient-to-b from-dark-900/70 via-dark-900/50 to-dark-900/90"></div>
-				<div class="absolute inset-0 bg-gradient-to-r from-dark-900/80 via-transparent to-dark-900/80"></div>
+					<!-- Gradient Overlay -->
+					<div class="absolute inset-0 bg-gradient-to-b from-dark-900/70 via-dark-900/50 to-dark-900/90"></div>
+					<div class="absolute inset-0 bg-gradient-to-r from-dark-900/80 via-transparent to-dark-900/80"></div>
+				</div>
+			{/if}
+		{/each}
+
+		<!-- Content Container -->
+		<div class="relative h-full flex items-center justify-center z-10">
+			<div class="container mx-auto px-4 sm:px-6 lg:px-8">
+				<div class="max-w-5xl mx-auto text-center">
+					{#key textAnimationKey}
+						<div class="space-y-8">
+							<!-- Logo/Icon -->
+							<div
+								in:scale={{ delay: 200, duration: 600, easing: backOut, start: 0.5 }}
+								class="text-6xl sm:text-7xl md:text-8xl animate-float mb-8"
+							>
+								🎧
+							</div>
+
+							<!-- Main Title -->
+							<h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
+								<!-- Animated Title -->
+								<span
+									class="block mb-4 bg-gradient-to-r from-primary-400 via-accent-400 to-primary-400 bg-clip-text text-transparent animate-gradient-shift"
+									in:fly={{ delay: 300, duration: 800, y: 30, easing: quintOut }}
+								>
+									{slides[currentSlide]?.title}
+								</span>
+
+								<!-- Animated Subtitle -->
+								<span
+									class="block text-dark-100"
+									in:fly={{ delay: 500, duration: 800, y: 30, easing: quintOut }}
+								>
+									{slides[currentSlide]?.subtitle}
+								</span>
+							</h1>
+
+							<!-- Description -->
+							<p
+								in:fly={{ delay: 700, duration: 800, y: 30, easing: quintOut }}
+								class="text-lg sm:text-xl md:text-2xl text-dark-300 max-w-3xl mx-auto leading-relaxed px-4"
+							>
+								Welcome to the official website of <span class="text-primary-400 font-semibold">Aliu Ifeoluwa Philemon</span> — a creative media producer, educator, and empowerment advocate.
+							</p>
+
+							<!-- CTA Buttons -->
+							<div
+								in:fly={{ delay: 900, duration: 800, y: 30, easing: quintOut }}
+								class="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4"
+							>
+								<a
+									href="/portfolio"
+									class="group px-8 py-4 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl font-semibold text-lg hover:from-primary-500 hover:to-accent-500 transition-all duration-300 shadow-2xl hover:shadow-primary-600/50 hover:scale-105 flex items-center space-x-2"
+								>
+									<span>Explore My Work</span>
+									<svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+									</svg>
+								</a>
+								<a
+									href="/contact"
+									class="px-8 py-4 bg-dark-800/80 backdrop-blur-sm text-primary-400 border-2 border-primary-600 rounded-xl font-semibold text-lg hover:bg-primary-600 hover:text-white transition-all duration-300 hover:scale-105"
+								>
+									Get in Touch
+								</a>
+							</div>
+						</div>
+					{/key}
+				</div>
+			</div>
+		</div>
+
+		<!-- Navigation Controls -->
+		{#if slides.length > 1}
+			<div class="absolute bottom-8 left-0 right-0 z-20">
+				<div class="container mx-auto px-4 sm:px-6 lg:px-8">
+					<div class="flex items-center justify-center space-x-4">
+						<!-- Previous Button -->
+						<button
+							onclick={prevSlide}
+							class="w-12 h-12 rounded-full bg-dark-800/80 backdrop-blur-sm border border-dark-700 hover:border-primary-600 text-dark-300 hover:text-primary-400 transition-all duration-200 flex items-center justify-center group"
+							aria-label="Previous slide"
+						>
+							<svg class="w-6 h-6 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+							</svg>
+						</button>
+
+						<!-- Slide Indicators -->
+						<div class="flex space-x-3">
+							{#each slides as _, index (index)}
+								<button
+									onclick={() => goToSlide(index)}
+									class="group relative"
+									aria-label="Go to slide {index + 1}"
+								>
+									<div class="w-12 h-1 bg-dark-700 rounded-full overflow-hidden">
+										<div
+											class="h-full bg-gradient-to-r from-primary-600 to-accent-600 transition-all duration-300"
+											class:w-full={index === currentSlide}
+											class:w-0={index !== currentSlide}
+										></div>
+									</div>
+								</button>
+							{/each}
+						</div>
+
+						<!-- Next Button -->
+						<button
+							onclick={nextSlide}
+							class="w-12 h-12 rounded-full bg-dark-800/80 backdrop-blur-sm border border-dark-700 hover:border-primary-600 text-dark-300 hover:text-primary-400 transition-all duration-200 flex items-center justify-center group"
+							aria-label="Next slide"
+						>
+							<svg class="w-6 h-6 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+							</svg>
+						</button>
+
+						<!-- Play/Pause Button -->
+						<button
+							onclick={togglePlayPause}
+							class="ml-4 w-12 h-12 rounded-full bg-dark-800/80 backdrop-blur-sm border border-dark-700 hover:border-primary-600 text-dark-300 hover:text-primary-400 transition-all duration-200 flex items-center justify-center"
+							aria-label={isPlaying ? 'Pause slideshow' : 'Play slideshow'}
+						>
+							{#if isPlaying}
+								<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+									<path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+								</svg>
+							{:else}
+								<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+									<path d="M8 5v14l11-7z"/>
+								</svg>
+							{/if}
+						</button>
+					</div>
+				</div>
 			</div>
 		{/if}
-	{/each}
+	{/if}
 
-	<!-- Content Container -->
-	<div class="relative h-full flex items-center justify-center z-10">
-		<div class="container mx-auto px-4 sm:px-6 lg:px-8">
-			<div class="max-w-5xl mx-auto text-center">
-				{#key textAnimationKey}
-					<div class="space-y-8">
-						<!-- Logo/Icon -->
-						<div
-							in:scale={{ delay: 200, duration: 600, easing: backOut, start: 0.5 }}
-							class="text-6xl sm:text-7xl md:text-8xl animate-float mb-8"
-						>
-							🎧
-						</div>
-
-						<!-- Main Title -->
-						<h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
-							<!-- Animated Title -->
-							<span
-								class="block mb-4 bg-gradient-to-r from-primary-400 via-accent-400 to-primary-400 bg-clip-text text-transparent animate-gradient-shift"
-								in:fly={{ delay: 300, duration: 800, y: 30, easing: quintOut }}
-							>
-								{slides[currentSlide].title}
-							</span>
-
-							<!-- Animated Subtitle -->
-							<span
-								class="block text-dark-100"
-								in:fly={{ delay: 500, duration: 800, y: 30, easing: quintOut }}
-							>
-								{slides[currentSlide].subtitle}
-							</span>
-						</h1>
-
-						<!-- Description -->
-						<p
-							in:fly={{ delay: 700, duration: 800, y: 30, easing: quintOut }}
-							class="text-lg sm:text-xl md:text-2xl text-dark-300 max-w-3xl mx-auto leading-relaxed px-4"
-						>
-							Welcome to the official website of <span class="text-primary-400 font-semibold">Aliu Ifeoluwa Philemon</span> — a creative media producer, educator, and empowerment advocate.
-						</p>
-
-						<!-- CTA Buttons -->
-						<div
-							in:fly={{ delay: 900, duration: 800, y: 30, easing: quintOut }}
-							class="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4"
-						>
-							<a
-								href="/portfolio"
-								class="group px-8 py-4 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl font-semibold text-lg hover:from-primary-500 hover:to-accent-500 transition-all duration-300 shadow-2xl hover:shadow-primary-600/50 hover:scale-105 flex items-center space-x-2"
-							>
-								<span>Explore My Work</span>
-								<svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-								</svg>
-							</a>
-							<a
-								href="/contact"
-								class="px-8 py-4 bg-dark-800/80 backdrop-blur-sm text-primary-400 border-2 border-primary-600 rounded-xl font-semibold text-lg hover:bg-primary-600 hover:text-white transition-all duration-300 hover:scale-105"
-							>
-								Get in Touch
-							</a>
-						</div>
-					</div>
-				{/key}
-			</div>
-		</div>
-	</div>
-
-	<!-- Navigation Controls -->
-	<div class="absolute bottom-8 left-0 right-0 z-20">
-		<div class="container mx-auto px-4 sm:px-6 lg:px-8">
-			<div class="flex items-center justify-center space-x-4">
-				<!-- Previous Button -->
-				<button
-					onclick={prevSlide}
-					class="w-12 h-12 rounded-full bg-dark-800/80 backdrop-blur-sm border border-dark-700 hover:border-primary-600 text-dark-300 hover:text-primary-400 transition-all duration-200 flex items-center justify-center group"
-					aria-label="Previous slide"
-				>
-					<svg class="w-6 h-6 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-					</svg>
-				</button>
-
-				<!-- Slide Indicators -->
-				<div class="flex space-x-3">
-					{#each slides as _, index (index)}
-						<button
-							onclick={() => goToSlide(index)}
-							class="group relative"
-							aria-label="Go to slide {index + 1}"
-						>
-							<div class="w-12 h-1 bg-dark-700 rounded-full overflow-hidden">
-								<div
-									class="h-full bg-gradient-to-r from-primary-600 to-accent-600 transition-all duration-300"
-									class:w-full={index === currentSlide}
-									class:w-0={index !== currentSlide}
-								></div>
-							</div>
-						</button>
-					{/each}
-				</div>
-
-				<!-- Next Button -->
-				<button
-					onclick={nextSlide}
-					class="w-12 h-12 rounded-full bg-dark-800/80 backdrop-blur-sm border border-dark-700 hover:border-primary-600 text-dark-300 hover:text-primary-400 transition-all duration-200 flex items-center justify-center group"
-					aria-label="Next slide"
-				>
-					<svg class="w-6 h-6 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-					</svg>
-				</button>
-
-				<!-- Play/Pause Button -->
-				<button
-					onclick={togglePlayPause}
-					class="ml-4 w-12 h-12 rounded-full bg-dark-800/80 backdrop-blur-sm border border-dark-700 hover:border-primary-600 text-dark-300 hover:text-primary-400 transition-all duration-200 flex items-center justify-center"
-					aria-label={isPlaying ? 'Pause slideshow' : 'Play slideshow'}
-				>
-					{#if isPlaying}
-						<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-							<path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
-						</svg>
-					{:else}
-						<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-							<path d="M8 5v14l11-7z"/>
-						</svg>
-					{/if}
-				</button>
-			</div>
-		</div>
-	</div>
 
 	<!-- Scroll Indicator -->
 	<div class="absolute bottom-24 left-1/2 -translate-x-1/2 z-20 animate-bounce">

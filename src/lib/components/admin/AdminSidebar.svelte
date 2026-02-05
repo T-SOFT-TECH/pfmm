@@ -5,6 +5,7 @@
 
 	const menuItems = [
 		{ href: '/admin', label: 'Dashboard', icon: '📊' },
+		{ href: '/admin/hero', label: 'Hero Slider', icon: '🖼️' },
 		{ href: '/admin/portfolio', label: 'Portfolio', icon: '💼' },
 		{ href: '/admin/blog', label: 'Blog Posts', icon: '📝' },
 		{ href: '/admin/testimonials', label: 'Testimonials', icon: '💬' },
