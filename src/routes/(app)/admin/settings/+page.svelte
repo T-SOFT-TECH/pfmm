@@ -27,7 +27,35 @@
 		youtube_url: ''
 	});
 
-	// ... rest of the code ...
+	// Stats state
+	let stats = $state<any[]>([]);
+	let showStatsModal = $state(false);
+	let editingStat = $state<any>(null);
+	let statForm = $state({
+		key: '',
+		label: '',
+		value: '',
+		suffix: '',
+		icon: '',
+		category: 'global',
+		active: true
+	});
+
+	const tabs = [
+		{ id: 'general', label: 'General', icon: '⚙️' },
+		{ id: 'contact', label: 'Contact', icon: '📞' },
+		{ id: 'social', label: 'Social', icon: '🌐' },
+		{ id: 'stats', label: 'Statistics', icon: '📊' }
+	];
+
+	const statCategories = ['global', 'home', 'about', 'testimonials', 'admin'];
+
+	onMount(async () => {
+		await Promise.all([
+			loadSettings(),
+			loadStats()
+		]);
+	});
 
 	async function loadSettings() {
 		try {
@@ -67,12 +95,11 @@
 	async function loadStats() {
 		try {
 			const records = await pb.collection('stats').getFullList({
-				sort: '-created'
+				sort: 'sort_order,created'
 			});
 			stats = records;
 		} catch (err: any) {
 			console.error('Error loading stats:', err);
-			error = err.message;
 		}
 	}
 
@@ -125,7 +152,7 @@
 			}
 
 			success = 'Settings saved successfully!';
-			await loadSettings(); // Reload to get the new file URLs
+			await loadSettings(); 
 			setTimeout(() => success = '', 3000);
 		} catch (err: any) {
 			error = err.message;

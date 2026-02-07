@@ -6,9 +6,11 @@
   <component name="ChangeListManager">
     <list default="true" id="c1e0ef60-02cb-4537-b4bb-ff0932dbc8d0" name="Changes" comment="Fixing the blog page">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/routes/(app)/admin/blog/+page.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/(app)/admin/blog/+page.svelte" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/routes/blog/+page.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/blog/+page.svelte" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/routes/blog/[slug]/+page.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/blog/[slug]/+page.svelte" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/(app)/admin/+page.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/(app)/admin/+page.svelte" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/(app)/admin/initiatives/+page.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/(app)/admin/initiatives/+page.svelte" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/(app)/admin/settings/+page.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/(app)/admin/settings/+page.svelte" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/empowerment/+page.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/empowerment/+page.svelte" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/testimonials/+page.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/testimonials/+page.svelte" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -16,7 +18,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="144" />
+    <option name="cachedIndexableFilesCount" value="445" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="Git.Settings">
@@ -95,6 +97,8 @@
       <workItem from="1764860150994" duration="764000" />
       <workItem from="1767539180278" duration="3552000" />
       <workItem from="1770052650111" duration="1418000" />
+      <workItem from="1770297926551" duration="1047000" />
+      <workItem from="1770449185706" duration="308000" />
     </task>
     <task id="LOCAL-00001" summary="My First Commit">
       <option name="closed" value="true" />

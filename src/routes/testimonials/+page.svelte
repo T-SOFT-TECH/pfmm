@@ -88,7 +88,7 @@
 
 						<!-- Testimonial Content -->
 						<blockquote class="text-dark-300 leading-relaxed mb-6">
-							"{testimonial.content}"
+							"{testimonial.quote}"
 						</blockquote>
 
 						<!-- Author Info -->
